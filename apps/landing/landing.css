@@ -1,0 +1,7 @@
+.landing { max-width: 960px; margin: 0 auto; padding: 64px 20px; display: flex; flex-direction: column; gap: 32px; }
+.landing-head h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.08; margin-block: 12px; }
+.landing-head .eyebrow { color: var(--color-brand); font-size: var(--text-sm); }
+.landing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.landing-card { display: flex; flex-direction: column; gap: 12px; padding: 28px; }
+.landing-card h2 { font-size: var(--text-xl); }
+.landing-link { margin-block-start: auto; font-weight: 600; color: var(--color-brand); }
