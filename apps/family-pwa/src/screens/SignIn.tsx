@@ -63,7 +63,7 @@ export function SignIn() {
               <ArrowRight size={18} className="flip-rtl" aria-hidden />
             </button>
             <p className="small muted" style={{ textAlign: 'center', marginBlockStart: 8 }}>
-              Demonstration with fictional school data. Staff use the <a href="../staff-web/">staff workspace</a>.
+              Demonstration with fictional school data. Staff use the <a href="../staff-web/index.html">staff workspace</a>.
             </p>
           </>
         )}

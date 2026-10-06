@@ -56,7 +56,7 @@ export function SignIn() {
             <TextField label="School email" value={person.email} readOnly />
             <div className="row wrap">
               <Button icon={KeyRound} onClick={() => setStep('mfa')}>Continue with school SSO</Button>
-              <a className="btn btn-ghost" href="../family-pwa/">Open the family app instead</a>
+              <a className="btn btn-ghost" href="../family-pwa/index.html">Open the family app instead</a>
             </div>
           </>
         ) : (
