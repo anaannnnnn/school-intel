@@ -116,7 +116,7 @@
 .ta-draft { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); }
 .ta-draft + .ta-draft { margin-block-start: 12px; }
 .ta-draft-prompt { font-size: 15px; font-weight: 600; line-height: 1.45; }
-.ta-answer { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--color-success) 10%, transparent); color: color-mix(in srgb, var(--color-success) 75%, var(--color-ink)); font-size: 14px; font-weight: 500; }
+.ta-answer { display: inline-flex; align-items: flex-start; align-self: flex-start; gap: 8px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--color-success) 10%, transparent); color: color-mix(in srgb, var(--color-success) 75%, var(--color-ink)); font-size: 14px; font-weight: 500; }
 .ta-explain { font-size: 13px; color: var(--color-muted); line-height: 1.55; }
 .ta-explain strong { color: var(--color-ink); font-weight: 600; }
 .ta-draft-actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -186,3 +186,4 @@
 /* staff.css sets .card padding after components.css, which cancels .card-flush; restore it for these screens. */
 .card.ta-flush { padding: 0; overflow: hidden; }
 .card.ta-flush > .card-header { padding: 22px 22px 0; }
+.ta-answer svg { flex: none; margin-block-start: 3px; }

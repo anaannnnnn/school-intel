@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Award, Bus, CalendarCheck, CircleCheck, ClipboardList, FileText, GraduationCap, MessageSquareText, Sparkles, Timer, Trophy, TriangleAlert, Users } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Checkbox, Chip, Dialog, Freshness, formatDate, formatTime, formatWeekday, useToast } from '@school-intel/ui';
-import { DEMO_DATE, family, learn, useDb } from '@school-intel/api';
+import { DEMO_DATE, family, learn, nowIso, useDb } from '@school-intel/api';
 import type { FeedItem } from '@school-intel/contracts';
 import { ChildSwitcher } from '../Shell';
 import { useFamily } from '../family-context';
@@ -18,7 +18,7 @@ const SUBJECT_COLORS = [
 ];
 
 export function greeting() {
-  const h = new Date(Date.now() + 4 * 3600_000).getUTCHours();
+  const h = Number(nowIso().slice(11, 13));
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 

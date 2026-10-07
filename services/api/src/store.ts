@@ -79,9 +79,16 @@ export function resetDemo() {
   emit();
 }
 
-/** Current Dubai time on the pinned demo date (6 October 2026). */
+/** The demo opens at 10:45 Dubai time on 6 October 2026 (mid-way through
+ *  lesson 4), then runs at real speed so timers and timestamps move. */
+export const DEMO_START = '10:45';
+const startedAt = Date.now();
+const demoBase = Date.parse(`${DEMO_DATE}T${DEMO_START}:00+04:00`);
+const dayEnd = Date.parse(`${DEMO_DATE}T23:59:59+04:00`);
+
+/** Current demo time as an ISO string with the Dubai offset. */
 export function nowIso(): string {
-  const d = new Date(Date.now() + 4 * 3600_000);
+  const d = new Date(Math.min(dayEnd, demoBase + (Date.now() - startedAt)) + 4 * 3600_000);
   const hh = String(d.getUTCHours()).padStart(2, '0');
   const mm = String(d.getUTCMinutes()).padStart(2, '0');
   const ss = String(d.getUTCSeconds()).padStart(2, '0');

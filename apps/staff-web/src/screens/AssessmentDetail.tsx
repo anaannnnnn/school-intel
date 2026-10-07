@@ -65,7 +65,7 @@ function DetailView({ actor, data }: { actor: Actor; data: Detail }) {
   const actions = (
     <>
       <Link to="/assessments" className="btn btn-secondary">
-        <ArrowLeft size={18} aria-hidden /> All
+        <ArrowLeft size={18} aria-hidden /> All assessments
       </Link>
       {editable && a.status === 'draft' && (
         <>
@@ -213,7 +213,7 @@ function DetailView({ actor, data }: { actor: Actor; data: Detail }) {
 
         <Card className="ai-panel">
           <CardHeader icon={Sparkles} title="Class insight" sub="From marked answers in this assessment" action={<AiTag>AI insight</AiTag>} />
-          <p className="ta-insight">{insight}</p>
+          {topicScores.length > 0 && <p className="ta-insight">{insight}</p>}
           {topicScores.length === 0 ? (
             <EmptyState icon={Sparkles} title="No marked answers yet">Topic scores appear once attempts are submitted and marked.</EmptyState>
           ) : (
