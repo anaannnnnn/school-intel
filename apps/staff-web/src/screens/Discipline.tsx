@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Award, BellRing, BellOff, ChartBar, ListChecks, ShieldCheck, ThumbsDown, ThumbsUp } from 'lucide-react';
-import { Avatar, Button, Card, CardHeader, Chip, EmptyState, Segmented, SelectField, Switch, TextArea, errorText, formatDateTime, useToast } from '@school-intel/ui';
+import { Avatar, Button, Card, CardHeader, Chip, EmptyState, Segmented, SelectField, Switch, TextArea, errorText, formatDate, formatDateTime, useToast } from '@school-intel/ui';
 import { teach, useDb } from '@school-intel/api';
 import type { Actor, BehaviourPoint } from '@school-intel/contracts';
 import { DataTable, ListRow, PageFoot, PageHead, Stat } from '../ui';
@@ -152,7 +152,7 @@ export function Discipline({ actor }: { actor: Actor }) {
           rows={rows}
           empty={<EmptyState icon={ListChecks} title="No entries">Nothing recorded for this filter yet.</EmptyState>}
           columns={[
-            { key: 'd', label: 'Date', render: (p) => <span className="tb-muted-cell">{formatDateTime(p.at)}</span> },
+            { key: 'd', label: 'Date', render: (p) => <span className="tb-muted-cell" title={formatDateTime(p.at)}>{formatDate(p.at)}</span> },
             { key: 's', label: 'Student', render: (p) => <span className="tb-who"><Avatar initials={p.student.initials} /><span><strong>{p.student.name}</strong><small>{p.student.classId}</small></span></span> },
             { key: 'k', label: 'Type', render: (p) => <Chip tone={p.kind === 'merit' ? 'success' : 'warning'}>{p.kind === 'merit' ? 'Merit' : 'Demerit'}</Chip> },
             { key: 'c', label: 'Category', render: (p) => <span style={{ whiteSpace: 'nowrap' }}>{p.category}</span> },

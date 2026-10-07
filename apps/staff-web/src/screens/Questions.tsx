@@ -73,7 +73,7 @@ export function Questions({ actor }: { actor: Actor }) {
   const own = teach.mySubjects(actor);
   const ownIds = new Set(own.map((s) => s.id));
 
-  const [subject, setSubject] = useState('all');
+  const [subject, setSubject] = useState(() => (own.length === 1 ? own[0].id : 'all'));
   const [topic, setTopic] = useState('all');
   const [type, setType] = useState('all');
   const [status, setStatus] = useState('all');

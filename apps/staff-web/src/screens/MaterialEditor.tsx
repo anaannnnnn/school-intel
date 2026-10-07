@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpenText, CirclePlay, EyeOff, FileText, Info, Layers, Lock, NotebookPen, PenLine, Presentation, Send, Smartphone, Sparkles, Type, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, BookOpenText, CirclePlay, EyeOff, FileText, Info, Layers, Lock, NotebookPen, PenLine, Presentation, Save, Send, Smartphone, Sparkles, type LucideIcon } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Chip, EmptyState, SelectField, TextArea, TextField, errorText, formatDateTime, useToast } from '@school-intel/ui';
 import { AI_DISCLOSURE, getDb, teach, useDb } from '@school-intel/api';
 import type { Actor, MaterialKind } from '@school-intel/contracts';
@@ -253,7 +253,7 @@ function Editor({ actor, m }: { actor: Actor; m?: Mat }) {
             </div>
           </div>
           <div className="ta-form-actions">
-            <Button icon={Type} variant={isNew ? 'primary' : 'secondary'} onClick={save} disabled={!isNew && !dirty}>
+            <Button icon={Save} variant={isNew ? 'primary' : 'secondary'} onClick={save} disabled={!isNew && !dirty}>
               {isNew ? 'Save as draft' : 'Save changes'}
             </Button>
             {!isNew && dirty && (
