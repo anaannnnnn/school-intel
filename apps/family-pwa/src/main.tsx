@@ -1,8 +1,12 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { applyPalette } from '@school-intel/ui';
 import { App } from './App';
+import { FAMILY_PALETTES } from './palettes';
 import '@fontsource-variable/nunito';
 import './family.css';
+
+applyPalette('family', FAMILY_PALETTES);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

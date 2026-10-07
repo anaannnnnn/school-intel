@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { BellRing, Languages, LogOut, Moon, RotateCcw } from 'lucide-react';
-import { Button, Callout, Card, CardHeader, Segmented, SelectField, Switch, useToast } from '@school-intel/ui';
+import { BellRing, Languages, LogOut, Moon, Palette as PaletteIcon, RotateCcw } from 'lucide-react';
+import { Button, Callout, Card, CardHeader, Segmented, SelectField, Switch, usePalette, useToast } from '@school-intel/ui';
 import { family, resetDemo, setSession } from '@school-intel/api';
 import type { FamilyPreferences } from '@school-intel/contracts';
 import { PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
+import { FAMILY_PALETTES } from '../palettes';
 
 const TIMES = ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 const MORNING = ['06:00', '06:30', '07:00', '07:30'];
@@ -14,6 +15,7 @@ export function Settings() {
   const toast = useToast();
   const [p, setP] = useState<FamilyPreferences>(() => family.preferences(actor));
   const set = <K extends keyof FamilyPreferences>(k: K, v: FamilyPreferences[K]) => setP((x) => ({ ...x, [k]: v }));
+  const [palette, setPalette] = usePalette('family', FAMILY_PALETTES);
 
   return (
     <>
@@ -22,6 +24,19 @@ export function Settings() {
         <CardHeader icon={Languages} title="Language" />
         <Segmented label="Language" value={p.language} onChange={(v) => set('language', v)} options={[{ value: 'en', label: 'English' }, { value: 'ar', label: 'العربية' }]} />
         {p.language === 'ar' && <p className="small muted" style={{ marginBlockStart: 10 }}>Right-to-left layout preview. School content is shown in Arabic once the school publishes translations.</p>}
+      </Card>
+      <Card>
+        <CardHeader icon={PaletteIcon} title="Colour theme" sub="Applies on this device straight away" />
+        <div className="palette-grid" role="radiogroup" aria-label="Colour theme">
+          {FAMILY_PALETTES.map((pal) => (
+            <button key={pal.id} type="button" role="radio" aria-checked={palette === pal.id} className="palette-option" onClick={() => setPalette(pal.id)}>
+              <span className="palette-chip" aria-hidden>
+                {pal.swatch.map((c) => <i key={c} style={{ background: c }} />)}
+              </span>
+              <span>{pal.name}<small style={{ display: 'block' }}>{pal.kit}</small></span>
+            </button>
+          ))}
+        </div>
       </Card>
       <Card>
         <CardHeader icon={Moon} title="Quiet hours" sub="Routine notifications wait until quiet hours end" />

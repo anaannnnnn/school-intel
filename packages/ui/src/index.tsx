@@ -10,6 +10,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -331,4 +332,51 @@ export function formatBytes(n: number) {
 /** Error message for display, keeping access-denied wording neutral. */
 export function errorText(e: unknown) {
   return e instanceof Error ? e.message : 'Something went wrong. Please try again.';
+}
+
+// ---------- Colour themes (kit palettes) ----------
+
+export interface Palette {
+  id: string;
+  name: string;
+  kit: string;
+  swatch: [string, string, string];
+  themeColor: string;
+}
+
+const paletteSubs = new Set<() => void>();
+const paletteKey = (app: string) => `school-intel:palette:${app}`;
+
+function readPalette(app: string, fallback: string) {
+  try {
+    return localStorage.getItem(paletteKey(app)) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Applies a palette to the document (data-palette on <html>) and the browser theme colour. */
+export function applyPalette(app: string, palettes: Palette[], id?: string) {
+  const fallback = palettes[0].id;
+  const chosen = palettes.find((p) => p.id === (id ?? readPalette(app, fallback))) ?? palettes[0];
+  if (chosen.id === fallback) delete document.documentElement.dataset.palette;
+  else document.documentElement.dataset.palette = chosen.id;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', chosen.themeColor);
+  return chosen.id;
+}
+
+export function usePalette(app: string, palettes: Palette[]): [string, (id: string) => void] {
+  const fallback = palettes[0].id;
+  const get = () => readPalette(app, fallback);
+  const value = useSyncExternalStore((cb) => (paletteSubs.add(cb), () => paletteSubs.delete(cb)), get, get);
+  const set = (id: string) => {
+    try {
+      localStorage.setItem(paletteKey(app), id);
+    } catch {
+      /* the choice lasts for this visit only */
+    }
+    applyPalette(app, palettes, id);
+    paletteSubs.forEach((s) => s());
+  };
+  return [value, set];
 }

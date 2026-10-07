@@ -33,7 +33,8 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Switch, cx, formatDate, formatTime } from '@school-intel/ui';
+import { Avatar, Switch, cx, formatDate, formatTime, usePalette } from '@school-intel/ui';
+import { STAFF_PALETTES } from './palettes';
 import { DEMO_DATE, family, resetDemo, SCHOOL, setSession, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { setAnnotations, useAnnotations } from './ui';
@@ -111,6 +112,7 @@ export function Layout({ actor }: { actor: Actor }) {
   const notes = family.notificationsFor(actor);
   const unread = notes.filter((n) => !n.read).length;
   const section = pathname.split('/')[1];
+  const [palette, setPalette] = usePalette('staff', STAFF_PALETTES);
 
   useEffect(() => {
     setDrawer(false);
@@ -211,6 +213,12 @@ export function Layout({ actor }: { actor: Actor }) {
               {open === 'user' && (
                 <div className="popover" role="dialog" aria-label="Account" style={{ width: 300 }}>
                   <div className="popover-head">{me.name} · {me.roles.join(', ')}</div>
+                  <div className="popover-head" style={{ paddingBlockEnd: 4 }}>Colour theme · {STAFF_PALETTES.find((p) => p.id === palette)?.name}</div>
+                  <div className="palette-swatches" role="radiogroup" aria-label="Colour theme">
+                    {STAFF_PALETTES.map((p) => (
+                      <button key={p.id} type="button" role="radio" aria-checked={palette === p.id} aria-label={`${p.name} (${p.kit})`} title={`${p.name} · ${p.kit}`} className="palette-swatch" style={{ ['--sw-a' as string]: p.swatch[0], ['--sw-b' as string]: p.swatch[1] }} onClick={() => setPalette(p.id)} />
+                    ))}
+                  </div>
                   <div style={{ padding: '0 10px' }}>
                     <Switch label="Show PRD references" hint="Phase and requirement IDs on each page" checked={ann} onChange={setAnnotations} />
                   </div>
