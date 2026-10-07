@@ -5,6 +5,21 @@
 import type {
   Activity,
   AbsenceExplanation,
+  Assessment,
+  Attempt,
+  AttendanceDay,
+  BehaviourPoint,
+  Doubt,
+  ExamEvent,
+  LessonRegister,
+  Material,
+  PastPaper,
+  Period,
+  Question,
+  Subject,
+  Topic,
+  WrittenSubmission,
+  WrittenTask,
   Assignment,
   AuditEvent,
   BusRoute,
@@ -29,6 +44,8 @@ import type {
   Submission,
   SupportCase,
 } from '@school-intel/contracts';
+import * as L from './seed-learning';
+import { markObjective, suggestRubricMarks } from './ai';
 
 export const SCHOOL = {
   id: 'horizon',
@@ -70,6 +87,24 @@ export interface Db {
   audit: AuditEvent[];
   preferences: Record<string, FamilyPreferences>;
   consents: Record<string, ISOConsent>;
+  // Learning, assessment and records (schema v4)
+  subjects: Subject[];
+  topics: Topic[];
+  materials: Material[];
+  questions: Question[];
+  pastPapers: PastPaper[];
+  assessments: Assessment[];
+  attempts: Attempt[];
+  writtenTasks: WrittenTask[];
+  writtenSubmissions: WrittenSubmission[];
+  doubts: Doubt[];
+  examEvents: ExamEvent[];
+  periods: Period[];
+  lessonRegisters: LessonRegister[];
+  attendanceHistory: Record<string, AttendanceDay[]>;
+  behaviourPoints: BehaviourPoint[];
+  /** Completed study-plan task IDs per student. */
+  planDone: Record<string, string[]>;
   counters: Record<string, number>;
   demo: { lmsOutage: boolean; staleBus: boolean; failPrimaryDelivery: boolean };
 }
@@ -419,8 +454,40 @@ export function createSeed(): Db {
     { id: 'A-1005', at: today('09:20'), actor: 'Aisha Rahman', action: 'Acknowledged support case', target: 'SC-1042', outcome: 'allowed' },
   ];
 
+  staff.push(...L.extraStaff);
+
+  const writtenSubmissions: WrittenSubmission[] = L.seededWritten.map((w) => {
+    const task = L.writtenTasks.find((x) => x.id === w.taskId)!;
+    const r = suggestRubricMarks(w.text, task.rubric, task.minWords);
+    return { ...w, suggestions: r.suggestions, confidence: r.confidence, aiFeedback: r.feedback };
+  });
+
+  // Two students have already sat today's science test; their written answer waits for the teacher.
+  const sciTest = L.assessments.find((a) => a.id === 'AS-SCI-T1')!;
+  const testAnswers: Record<string, Record<string, string>> = {
+    'stu-zara': { 'Q-203': '1', 'Q-204': '1', 'Q-205': '2', 'Q-207': 'In a solid the particles are close together in a regular pattern and they vibrate about a fixed position. In a liquid they are still close but they can slide past each other, so liquids flow. When you heat a substance the particles get more energy and move faster.' },
+    'stu-yusuf': { 'Q-203': '2', 'Q-204': '1', 'Q-205': '0', 'Q-207': 'Solids are hard and liquids are runny. The particles in a liquid move.' },
+  };
+  const testAttempts: Attempt[] = Object.entries(testAnswers).map(([studentId, ans], i) => ({
+    id: `AT-T${i + 1}`,
+    assessmentId: sciTest.id,
+    studentId,
+    startedAt: today(`0${7 + i}:40`),
+    submittedAt: today(`0${7 + i}:58`),
+    status: 'submitted',
+    items: sciTest.questionIds.map((qid) => {
+      const q = L.questions.find((x) => x.id === qid)!;
+      if (q.type === 'short') {
+        const r = suggestRubricMarks(ans[qid], q.rubric ?? []);
+        return { questionId: qid, answer: ans[qid], max: q.marks, status: 'ai-suggested' as const, suggestions: r.suggestions, confidence: r.confidence };
+      }
+      const m = markObjective(q, ans[qid]);
+      return { questionId: qid, answer: ans[qid], max: q.marks, awarded: m.awarded, correct: m.correct, status: 'auto' as const };
+    }),
+  }));
+
   return {
-    version: 3,
+    version: 4,
     staff, students, guardians, relationships, classes, feed, drafts, cases, requests, circulars, assignments,
     submissions: [], passports, concerns, registers, explanations, incidents, homework, activities, routes,
     connectors, quarantine, notifications, audit,
@@ -430,7 +497,23 @@ export function createSeed(): Db {
     consents: {
       'TRIP-7-MUSEUM:stu-sara': { key: 'TRIP-7-MUSEUM', studentId: 'stu-sara', label: 'Museum visit · 15 Oct', given: false },
     },
-    counters: { REQ: 83, SG: 26, SUB: 720, BI: 212, A: 1005, N: 5, SC: 1044, AE: 311, HW: 11 },
+    subjects: L.subjects,
+    topics: L.topics,
+    materials: L.materials,
+    questions: L.questions,
+    pastPapers: L.pastPapers,
+    assessments: L.assessments,
+    attempts: [...L.seededAttempts(), ...testAttempts],
+    writtenTasks: L.writtenTasks,
+    writtenSubmissions,
+    doubts: L.doubts,
+    examEvents: L.examEvents,
+    periods: L.periods,
+    lessonRegisters: L.seededRegisters(),
+    attendanceHistory: L.seededAttendanceHistory(),
+    behaviourPoints: L.behaviourPoints,
+    planDone: { 'stu-sara': [] },
+    counters: { REQ: 83, SG: 26, SUB: 720, BI: 212, A: 1005, N: 5, SC: 1044, AE: 311, HW: 11, MAT: 105, Q: 402, AS: 1, AT: 100, WS: 3, DB: 203, BP: 8 },
     demo: { lmsOutage: false, staleBus: false, failPrimaryDelivery: false },
   };
 }

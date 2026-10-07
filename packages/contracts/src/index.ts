@@ -399,3 +399,222 @@ export interface FamilyPreferences {
   circulars: boolean;
   activities: boolean;
 }
+
+// ======================================================================
+// Learning platform: materials, doubts, question bank, assessments,
+// past papers, exam planning, AI-assisted marking.
+// ======================================================================
+
+export interface Subject {
+  id: string;
+  name: string;
+  short: string;
+  classId: string;
+  teacherId: string;
+  hue: number; // used for the subject tile colour
+}
+
+export interface Topic {
+  id: string;
+  subjectId: string;
+  name: string;
+  order: number;
+}
+
+export type MaterialKind = 'notes' | 'video' | 'worksheet' | 'slides';
+
+export interface Material {
+  id: string;
+  subjectId: string;
+  topicId: string;
+  title: string;
+  kind: MaterialKind;
+  body: string; // paragraphs separated by blank lines
+  minutes: number;
+  status: 'draft' | 'published';
+  aiGenerated: boolean;
+  createdBy: string;
+  updatedAt: ISODate;
+}
+
+export type QuestionType = 'mcq' | 'numeric' | 'short';
+
+export interface RubricPoint {
+  id: string;
+  criterion: string;
+  marks: number;
+  keywords: string[];
+}
+
+export interface Question {
+  id: string;
+  subjectId: string;
+  topicId: string;
+  type: QuestionType;
+  prompt: string;
+  options?: string[];
+  answer: string; // option index for mcq, value for numeric, model answer for short
+  explanation: string;
+  marks: number;
+  difficulty: 1 | 2 | 3;
+  status: 'approved' | 'draft';
+  aiGenerated: boolean;
+  rubric?: RubricPoint[];
+  paperId?: string;
+}
+
+export type AssessmentKind = 'quiz' | 'test' | 'mock';
+
+export interface Assessment {
+  id: string;
+  kind: AssessmentKind;
+  title: string;
+  subjectId: string;
+  classId: string;
+  questionIds: string[];
+  durationMin?: number;
+  opensAt: ISODate;
+  closesAt?: ISODate;
+  status: 'draft' | 'scheduled' | 'open' | 'closed';
+  resultsReleased: boolean;
+  paperId?: string;
+  createdBy: string;
+}
+
+export interface MarkSuggestion {
+  criterionId: string;
+  criterion: string;
+  max: number;
+  suggested: number;
+  awarded?: number;
+  evidence: string;
+  rationale: string;
+}
+
+export interface AttemptItem {
+  questionId: string;
+  answer: string;
+  max: number;
+  awarded?: number;
+  correct?: boolean;
+  status: 'auto' | 'ai-suggested' | 'confirmed';
+  suggestions?: MarkSuggestion[];
+  confidence?: 'high' | 'medium' | 'low';
+}
+
+export interface Attempt {
+  id: string;
+  assessmentId: string;
+  studentId: string;
+  startedAt: ISODate;
+  submittedAt?: ISODate;
+  items: AttemptItem[];
+  status: 'in-progress' | 'submitted' | 'marked' | 'released';
+  teacherComment?: string;
+}
+
+export interface PastPaper {
+  id: string;
+  board: string;
+  subjectId: string;
+  year: number;
+  session: string;
+  title: string;
+  questionIds: string[];
+  licence: string;
+}
+
+export interface DoubtMessage {
+  from: 'student' | 'ai' | 'teacher';
+  author: string;
+  text: string;
+  steps?: string[];
+  sources?: string[];
+  at: ISODate;
+}
+
+export interface Doubt {
+  id: string;
+  studentId: string;
+  subjectId: string;
+  topicId?: string;
+  question: string;
+  messages: DoubtMessage[];
+  status: 'ai-answered' | 'escalated' | 'teacher-answered' | 'resolved';
+  createdAt: ISODate;
+}
+
+export interface ExamEvent {
+  id: string;
+  classId: string;
+  subjectId: string;
+  title: string;
+  date: ISODate;
+  topicIds: string[];
+}
+
+export interface WrittenTask {
+  id: string;
+  classId: string;
+  subjectId: string;
+  topicId: string;
+  title: string;
+  prompt: string;
+  due: ISODate;
+  rubric: RubricPoint[];
+  minWords: number;
+}
+
+export interface WrittenSubmission {
+  id: string;
+  taskId: string;
+  studentId: string;
+  text: string;
+  submittedAt: ISODate;
+  suggestions: MarkSuggestion[];
+  confidence: 'high' | 'medium' | 'low';
+  aiFeedback: string;
+  teacherFeedback?: string;
+  status: 'ai-suggested' | 'confirmed' | 'released';
+}
+
+// ---------- Timetable, lesson attendance, discipline ----------
+
+export interface Period {
+  id: string;
+  classId: string;
+  subjectId: string;
+  day: number; // 1 = Monday
+  start: string;
+  end: string;
+  room: string;
+}
+
+export type Presence = 'present' | 'late' | 'absent' | 'excused';
+
+export interface LessonRegister {
+  id: string;
+  periodId: string;
+  date: string;
+  marks: Record<string, Presence>;
+  takenBy?: string;
+  takenAt?: ISODate;
+  status: 'open' | 'submitted';
+}
+
+export interface AttendanceDay {
+  date: string;
+  status: Presence;
+}
+
+export interface BehaviourPoint {
+  id: string;
+  studentId: string;
+  kind: 'merit' | 'demerit';
+  category: string;
+  points: number;
+  note: string;
+  by: string;
+  at: ISODate;
+  parentNotified: boolean;
+}
