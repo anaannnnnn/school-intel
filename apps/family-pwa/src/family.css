@@ -470,3 +470,5 @@ a.card:hover, button.card:hover { box-shadow: var(--shadow); }
 .palette-chip { display: flex; width: 100%; height: 28px; border-radius: 10px; overflow: hidden; }
 .palette-chip i { flex: 1; }
 :root[data-palette='night'] .btn-danger { --btn-fg: #1a0505; }
+
+.card.card-flush { padding: 0; }

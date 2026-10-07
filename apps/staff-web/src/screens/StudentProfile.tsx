@@ -29,7 +29,7 @@ export function StudentProfile({ actor }: { actor: Actor }) {
     <>
       <PageHead
         title={<span className="row" style={{ gap: 14 }}><Avatar initials={p.initials} size="lg" />{p.name}</span>}
-        sub={`Year ${p.classId} · SIS ${p.sisId} · Horizon Learning School`}
+        sub={`Year ${p.classId} · ${p.sisId} · Horizon Learning School`}
         spec="Student record · role-filtered"
         actions={<Link to="/students" className="btn btn-secondary">All students</Link>}
       />

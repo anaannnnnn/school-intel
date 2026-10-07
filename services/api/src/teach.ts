@@ -430,7 +430,7 @@ export function markingQueue(actor: Actor) {
     const a = d.assessments.find((x) => x.id === at.assessmentId)!;
     if (!own.includes(a.subjectId)) return [];
     return at.items
-      .filter((i) => i.status === 'ai-suggested')
+      .filter((i) => i.status === 'ai-suggested' || (i.status === 'confirmed' && !!i.suggestions))
       .map((i) => ({
         ref: { kind: 'test', attemptId: at.id, questionId: i.questionId } as MarkRef,
         key: `${at.id}:${i.questionId}`,
@@ -439,9 +439,9 @@ export function markingQueue(actor: Actor) {
         subject: d.subjects.find((x) => x.id === a.subjectId)!,
         submittedAt: at.submittedAt ?? at.startedAt,
         confidence: i.confidence ?? 'medium',
-        suggested: (i.suggestions ?? []).reduce((n, s) => n + s.suggested, 0),
+        suggested: (i.suggestions ?? []).reduce((n, s) => n + (i.status === 'confirmed' ? (s.awarded ?? s.suggested) : s.suggested), 0),
         max: i.max,
-        status: 'to-confirm' as const,
+        status: i.status === 'ai-suggested' ? ('to-confirm' as const) : at.status === 'released' ? ('released' as const) : ('confirmed' as const),
       }));
   });
   const written = d.writtenSubmissions
