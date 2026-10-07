@@ -165,7 +165,7 @@ export const assessments: Assessment[] = [
   { id: 'AS-QZ1', kind: 'quiz', title: 'Equivalent fractions check', subjectId: 'sub-math', classId: '7A', questionIds: ['Q-101', 'Q-102', 'Q-103', 'Q-104'], opensAt: t('2026-10-05', '11:10'), status: 'open', resultsReleased: true, createdBy: 'st-nadia' },
   { id: 'AS-QZ2', kind: 'quiz', title: 'States of matter quick quiz', subjectId: 'sub-sci', classId: '7A', questionIds: ['Q-201', 'Q-202', 'Q-205', 'Q-206'], opensAt: t('2026-10-02', '12:00'), status: 'open', resultsReleased: true, createdBy: 'st-priya' },
   { id: 'AS-QZ3', kind: 'quiz', title: 'Arabic vocabulary practice', subjectId: 'sub-ara', classId: '7A', questionIds: ['Q-401', 'Q-402'], opensAt: t('2026-10-01', '09:00'), status: 'open', resultsReleased: true, createdBy: 'st-huda' },
-  { id: 'AS-SCI-T1', kind: 'test', title: 'Particles unit test', subjectId: 'sub-sci', classId: '7A', questionIds: ['Q-203', 'Q-204', 'Q-205', 'Q-207'], durationMin: 20, opensAt: t(D, '07:30'), closesAt: t(D, '22:00'), status: 'open', resultsReleased: false, createdBy: 'st-priya' },
+  { id: 'AS-SCI-T1', kind: 'test', title: 'Particles unit test', subjectId: 'sub-sci', classId: '7A', questionIds: ['Q-203', 'Q-204', 'Q-205', 'Q-207'], durationMin: 20, opensAt: t(D, '07:30'), closesAt: t(D, '23:59'), status: 'open', resultsReleased: false, createdBy: 'st-priya' },
   { id: 'AS-MATH-CP', kind: 'test', title: 'Fractions checkpoint', subjectId: 'sub-math', classId: '7A', questionIds: ['Q-103', 'Q-105', 'Q-107', 'Q-108', 'Q-109', 'PP-M2'], durationMin: 30, opensAt: t('2026-10-09', '10:20'), closesAt: t('2026-10-09', '11:00'), status: 'scheduled', resultsReleased: false, createdBy: 'st-nadia' },
 ];
 

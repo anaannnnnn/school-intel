@@ -12,6 +12,9 @@ import { getDb, mutate, nextId, nowIso } from './store';
 /** UAE MoE guidance: no generative AI study tools below Grade 7 (age 13). */
 export const MIN_AI_YEAR = 7;
 
+/** Timed past-paper practice allows four minutes per question. */
+export const PAPER_MIN_PER_Q = 4;
+
 const staffName = (d: Db, id: string) => d.staff.find((s) => s.id === id)?.name ?? id;
 
 function requireStudentSelf(actor: Actor, target: string): Student {
@@ -295,7 +298,7 @@ export function startPastPaper(actor: Actor, paperId: string) {
   const p = d.pastPapers.find((x) => x.id === paperId);
   const subj = p && d.subjects.find((s) => s.id === p.subjectId && s.classId === st.classId);
   if (!p || !subj) throw new AccessDenied('This paper is not available for your class.');
-  return createPractice(actor, st, { title: p.title, subjectId: p.subjectId, questionIds: p.questionIds, paperId: p.id, durationMin: p.questionIds.length * 4 });
+  return createPractice(actor, st, { title: p.title, subjectId: p.subjectId, questionIds: p.questionIds, paperId: p.id, durationMin: p.questionIds.length * PAPER_MIN_PER_Q });
 }
 
 function createPractice(actor: Actor, st: Student, x: { title: string; subjectId: string; questionIds: string[]; paperId?: string; durationMin?: number }) {
@@ -337,7 +340,7 @@ export function pastPapersFor(actor: Actor, studentId: string) {
     .map((p) => {
       const tries = d.attempts.filter((at) => at.studentId === studentId && at.status === 'released' && d.assessments.find((a) => a.id === at.assessmentId)?.paperId === p.id);
       const best = tries.map(attemptScore).sort((a, b) => b.pct - a.pct)[0];
-      return { ...p, subject: d.subjects.find((s) => s.id === p.subjectId)!, tries: tries.length, best, marks: p.questionIds.reduce((n, id) => n + (d.questions.find((q) => q.id === id)?.marks ?? 0), 0) };
+      return { ...p, subject: d.subjects.find((s) => s.id === p.subjectId)!, tries: tries.length, best, durationMin: p.questionIds.length * PAPER_MIN_PER_Q, marks: p.questionIds.reduce((n, id) => n + (d.questions.find((q) => q.id === id)?.marks ?? 0), 0) };
     })
     .sort((a, b) => b.year - a.year);
 }
@@ -556,7 +559,7 @@ export function gradesFor(actor: Actor, studentId: string) {
         .filter((at) => at.studentId === studentId && at.status === 'released')
         .map((at) => ({ at, a: d.assessments.find((x) => x.id === at.assessmentId)! }))
         .filter(({ a }) => a.subjectId === s.id && a.kind !== 'mock')
-        .map(({ at, a }) => ({ id: at.id, title: a.title, kind: a.kind as string, date: at.submittedAt ?? at.startedAt, ...attemptScore(at) }));
+        .map(({ at, a }) => ({ id: at.id, taskId: undefined as string | undefined, title: a.title, kind: a.kind as string, date: at.submittedAt ?? at.startedAt, ...attemptScore(at) }));
       const written = d.writtenSubmissions
         .filter((w) => w.studentId === studentId && w.status === 'released')
         .map((w) => ({ w, task: d.writtenTasks.find((x) => x.id === w.taskId)! }))
@@ -564,7 +567,7 @@ export function gradesFor(actor: Actor, studentId: string) {
         .map(({ w, task }) => {
           const got = w.suggestions.reduce((n, x) => n + (x.awarded ?? x.suggested), 0);
           const max = w.suggestions.reduce((n, x) => n + x.max, 0);
-          return { id: w.id, title: task.title, kind: 'written', date: w.submittedAt, got, max, pct: pct(got, max) };
+          return { id: w.id, taskId: task.id, title: task.title, kind: 'written', date: w.submittedAt, got, max, pct: pct(got, max) };
         });
       const all = [...results, ...written].sort((a, b) => b.date.localeCompare(a.date));
       const average = all.length ? Math.round(all.reduce((n, r) => n + r.pct, 0) / all.length) : undefined;

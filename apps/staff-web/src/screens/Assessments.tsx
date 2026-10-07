@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, ClipboardCheck, FileClock, FileStack, Gauge, PenLine, Plus, Timer } from 'lucide-react';
+import { ArrowRight, CalendarClock, ClipboardCheck, FileClock, FileStack, Gauge, PenLine, Plus, Timer } from 'lucide-react';
 import { Card, CardHeader, Chip, EmptyState, Progress, formatDate, formatDateTime, formatTime, type Tone } from '@school-intel/ui';
-import { getDb, teach, useDb } from '@school-intel/api';
+import { DEMO_DATE, getDb, teach, useDb } from '@school-intel/api';
 import type { Actor, Assessment } from '@school-intel/contracts';
 import { DataTable, Heat, ListRow, PageFoot, PageHead, Stat, SubjectDot, Tabs } from '../ui';
 import '../teaching-a.css';
@@ -48,6 +48,7 @@ export function Assessments({ actor }: { actor: Actor }) {
   const closedAvgs = groups.closed.map((a) => a.average).filter((x): x is number => x !== undefined);
   const closedAvg = closedAvgs.length ? Math.round(closedAvgs.reduce((a, b) => a + b, 0) / closedAvgs.length) : undefined;
   const papers = d.pastPapers.filter((p) => visible.some((s) => s.id === p.subjectId));
+  const exams = d.examEvents.filter((e) => e.date.slice(0, 10) >= DEMO_DATE && visible.some((s) => s.id === e.subjectId)).sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <>
@@ -71,7 +72,7 @@ export function Assessments({ actor }: { actor: Actor }) {
         <Stat icon={Gauge} value={closedAvg === undefined ? '—' : `${closedAvg}%`} label="Average score · closed" tone={closedAvg !== undefined && closedAvg < 50 ? 'warning' : undefined} foot={`${closedAvgs.length} closed assessment${closedAvgs.length === 1 ? '' : 's'}`} />
       </div>
 
-      <div className="grid-main">
+      <>
         <Card className="card-flush ta-flush">
           <div className="table-toolbar" style={{ paddingBlockEnd: 0 }}>
             <Tabs
@@ -141,6 +142,8 @@ export function Assessments({ actor }: { actor: Actor }) {
           />
         </Card>
 
+        <div className="grid-2">
+
         <Card>
           <CardHeader icon={FileStack} title="Past papers" sub="School-authored, free to use within Horizon" />
           {papers.length === 0 ? (
@@ -175,7 +178,34 @@ export function Assessments({ actor }: { actor: Actor }) {
             </p>
           )}
         </Card>
-      </div>
+        <Card>
+          <CardHeader icon={CalendarClock} title="Upcoming exam dates" sub="From the school calendar" />
+          {exams.length === 0 ? (
+            <p className="small muted">No upcoming exams for your subjects.</p>
+          ) : (
+            <div className="lrows">
+              {exams.map((e) => {
+                const s = d.subjects.find((x) => x.id === e.subjectId)!;
+                return (
+                  <ListRow
+                    key={e.id}
+                    icon={CalendarClock}
+                    tone="info"
+                    title={e.title}
+                    sub={
+                      <span className="ta-subj">
+                        <SubjectDot hue={s.hue} /> {s.short} · Year {e.classId} · {e.topicIds.length} topic{e.topicIds.length === 1 ? '' : 's'}
+                      </span>
+                    }
+                    value={formatDate(e.date, { weekday: 'short', day: 'numeric', month: 'short' })}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </Card>
+        </div>
+      </>
       <PageFoot />
     </>
   );

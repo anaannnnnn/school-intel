@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bot, CircleCheck, MessageCircleQuestion, MessagesSquare, ShieldCheck, Sparkles, UserRoundCheck } from 'lucide-react';
+import { Bot, CircleCheck, MessageCircleQuestion, MessagesSquare, ShieldCheck, Sparkles, UserRoundCheck } from 'lucide-react';
 import { Avatar, Callout, Card, CardHeader, Chip, EmptyState, formatDateTime } from '@school-intel/ui';
 import { teach, useDb } from '@school-intel/api';
 import type { Actor, Doubt } from '@school-intel/contracts';
@@ -78,7 +78,6 @@ export function Doubts({ actor }: { actor: Actor }) {
                 ),
               },
               { key: 'st', label: 'Status · asked', render: (r) => <span className="stack-sm" style={{ gap: 4, alignItems: 'flex-start' }}><DoubtStatus status={r.status} /><span className="tb-muted-cell">{formatDateTime(r.createdAt)}</span></span> },
-              { key: 'a', label: '', align: 'end', render: (r) => <span className="tb-link">{r.status === 'escalated' ? 'Reply' : 'Open'} <ArrowRight size={14} aria-hidden /></span> },
             ]}
           />
         </Card>

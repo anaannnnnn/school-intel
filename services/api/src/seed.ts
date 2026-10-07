@@ -487,7 +487,7 @@ export function createSeed(): Db {
   }));
 
   return {
-    version: 4,
+    version: 5,
     staff, students, guardians, relationships, classes, feed, drafts, cases, requests, circulars, assignments,
     submissions: [], passports, concerns, registers, explanations, incidents, homework, activities, routes,
     connectors, quarantine, notifications, audit,

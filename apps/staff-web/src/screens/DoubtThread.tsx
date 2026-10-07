@@ -73,7 +73,7 @@ export function DoubtThread({ actor }: { actor: Actor }) {
     <>
       <PageHead
         title={x.question}
-        sub={<span className="row wrap" style={{ gap: 8 }}><SubjectDot hue={x.subject.hue} />{x.subject.name}{x.topic ? ` · ${x.topic.name}` : ''} · asked {formatDateTime(x.createdAt)} <DoubtStatus status={x.status} /></span>}
+        sub={<><SubjectDot hue={x.subject.hue} className="tb-inline-dot" />{x.subject.name}{x.topic ? ` · ${x.topic.name}` : ''} · asked {formatDateTime(x.createdAt)} <DoubtStatus status={x.status} /></>}
         spec="Teaching · Study helper escalations"
         actions={<Link to="/doubts" className="btn btn-secondary btn-sm"><ArrowLeft size={16} aria-hidden className="flip-rtl" />All questions</Link>}
       />
