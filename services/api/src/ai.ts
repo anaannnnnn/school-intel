@@ -115,8 +115,6 @@ export function suggestRubricMarks(text: string, rubric: RubricPoint[], minWords
     return { criterionId: c.id, criterion: c.criterion, max: c.marks, suggested, evidence: best, rationale };
   });
 
-  const total = suggestions.reduce((n, s) => n + s.suggested, 0);
-  const max = suggestions.reduce((n, s) => n + s.max, 0);
   const partial = suggestions.filter((s) => s.suggested > 0 && s.suggested < s.max).length;
   let confidence: RubricResult['confidence'] = 'high';
   if (minWords && words < minWords * 0.6) confidence = 'low';
@@ -129,7 +127,7 @@ export function suggestRubricMarks(text: string, rubric: RubricPoint[], minWords
   if (weakest && weakest.suggested < weakest.max) parts.push(`Next step: ${nextStep(weakest.criterion)}`);
   if (minWords && words < minWords) parts.push(`Aim for at least ${minWords} words (you wrote ${words}).`);
   if (!parts.length) parts.push('Every criterion is covered. Check spelling and punctuation before you finish.');
-  return { suggestions, confidence, feedback: `${parts.join(' ')} (${total}/${max} suggested)` };
+  return { suggestions, confidence, feedback: parts.join(' ') };
 }
 
 function nextStep(criterion: string) {
