@@ -96,7 +96,7 @@ export function Grades() {
         </>
       )}
 
-      <p className="small muted">Averages use released results only. Practice papers {isParent ? 'students take' : 'you take'} on their own are not included.</p>
+      <p className="small muted">Averages use released results only. Practice papers {isParent ? `${child.firstName} chooses` : 'you choose'} to do aren’t included.</p>
     </>
   );
 }

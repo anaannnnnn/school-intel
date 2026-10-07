@@ -137,3 +137,4 @@
 .account-pick .tick { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-brand); color: var(--color-on-brand); }
 .prow-sub .due { color: var(--color-warning-ink); font-weight: 800; }
 .plan-task .task-kind { display: inline; vertical-align: -1px; }
+.option .opt-tag { white-space: nowrap; }

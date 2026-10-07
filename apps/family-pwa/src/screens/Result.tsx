@@ -74,7 +74,7 @@ export function Result() {
             <div className="card-top">
               <span className="prow-tile" aria-hidden><Clock size={22} /></span>
               <div className="grow">
-                <h3>{checking ? 'Your teacher is checking' : 'Results on their way'}</h3>
+                <h3>{checking ? 'Thanks, your test is in' : 'Results on their way'}</h3>
                 <p className="muted">{pending}</p>
               </div>
             </div>
