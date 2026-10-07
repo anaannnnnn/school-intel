@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CalendarClock, ListChecks, MessageSquareText, Send, Sparkles, TriangleAlert } from 'lucide-react';
+import { CalendarClock, Send, Sparkles, TriangleAlert } from 'lucide-react';
 import { Button, Callout, Card, Chip, Dialog, EmptyState, Steps, TextArea, errorText, formatDate, formatDateTime, useToast } from '@school-intel/ui';
 import { learn, useDb } from '@school-intel/api';
 import { PageHeader } from '../Shell';
@@ -63,7 +63,7 @@ export function WrittenTask() {
           </div>
           <p style={{ lineHeight: 1.6 }}>{w.prompt}</p>
           <div className="stack-sm">
-            <p className="eyebrow"><ListChecks size={13} aria-hidden style={{ verticalAlign: '-2px' }} /> What your teacher looks for</p>
+            <p className="eyebrow">What your teacher looks for</p>
             <ul className="rubric-list">
               {w.rubric.map((r) => (
                 <li key={r.id}><span>{r.criterion}</span><b>{r.marks} {r.marks === 1 ? 'mark' : 'marks'}</b></li>
@@ -248,7 +248,7 @@ function Submitted({ w, parent, first }: { w: ReturnType<typeof learn.writtenTas
           {sub.teacherFeedback && (
             <Card>
               <div className="stack-sm">
-                <p className="eyebrow"><MessageSquareText size={13} aria-hidden style={{ verticalAlign: '-2px' }} /> Teacher feedback</p>
+                <p className="eyebrow">Teacher feedback</p>
                 <p style={{ lineHeight: 1.6 }}>{sub.teacherFeedback}</p>
               </div>
             </Card>

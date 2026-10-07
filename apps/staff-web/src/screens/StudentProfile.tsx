@@ -203,7 +203,7 @@ function LearningRecord({ actor, studentId, firstName }: { actor: Actor; student
           </ul>
         </div>
         <div>
-          <span className="tb-section-title">Merits and discipline · +{merits} / −{demerits}</span>
+          <span className="tb-section-title">Points · +{merits} / −{demerits}</span>
           {recent.length === 0 ? <p className="small muted">No points recorded this term.</p> : (
             <ul className="tb-pt-list">
               {recent.map((b) => (

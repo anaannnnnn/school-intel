@@ -113,7 +113,7 @@ export function Progress() {
           icon={CalendarCheck}
           tone="success"
           title="Attendance"
-          sub={`Present ${att.present} · Late ${att.late} · Absent ${att.absent}`}
+          sub={`${att.absent + att.excused} ${att.absent + att.excused === 1 ? 'day' : 'days'} missed · ${att.late} late`}
           end={<span className="prow-value">{att.rate}%</span>}
         />
         <PRow to="/behaviour" icon={Award} tone="pink" title="Merits & behaviour" sub={beh.points.length ? `${beh.merits} merit points${beh.demerits ? ` · ${beh.demerits} notes` : ''}` : 'Nothing recorded yet'} />

@@ -69,7 +69,10 @@ export function ParentToday() {
         <span className="eyebrow">{child.firstName}’s day · Year {child.classId}</span>
         <div className="hero-day">
           <span className="hero-num">{minutes}<small>min</small></span>
-          <p>homework tonight{homework.length ? ` · ${homework.length} ${homework.length === 1 ? 'task' : 'tasks'} due tomorrow` : ''}</p>
+          <p>
+            homework tonight
+            {homework.length > 0 && <><br />{homework.length} {homework.length === 1 ? 'task' : 'tasks'} due tomorrow</>}
+          </p>
         </div>
         <div className="stack-sm">
           <span className="hero-line"><CalendarCheck size={16} aria-hidden /> {attendance ? `${attendance.title} · ${attendance.detail}` : 'Register not taken yet today'}</span>
@@ -103,7 +106,7 @@ export function ParentToday() {
 
       {glance.length > 0 && (
         <Card>
-          <CardHeader icon={CircleCheck} title="Also today" sub={`${child.firstName} · Year ${child.classId}`} />
+          <CardHeader icon={CircleCheck} title="Also today" />
           <ul className="glance">
             {glance.map((i) => (
               <GlanceRow key={i.id} item={i} />

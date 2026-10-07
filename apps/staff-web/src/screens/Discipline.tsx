@@ -3,7 +3,7 @@ import { Award, BellRing, BellOff, ChartBar, ListChecks, ShieldCheck, ThumbsDown
 import { Avatar, Button, Card, CardHeader, Chip, EmptyState, Segmented, SelectField, Switch, TextArea, errorText, formatDateTime, useToast } from '@school-intel/ui';
 import { teach, useDb } from '@school-intel/api';
 import type { Actor, BehaviourPoint } from '@school-intel/contracts';
-import { DataTable, PageFoot, PageHead, Stat } from '../ui';
+import { DataTable, ListRow, PageFoot, PageHead, Stat } from '../ui';
 import '../teaching-b.css';
 
 type Kind = BehaviourPoint['kind'];
@@ -29,6 +29,15 @@ export function Discipline({ actor }: { actor: Actor }) {
   const sum = (xs: typeof log.points) => xs.reduce((n, p) => n + p.points, 0);
   const notified = log.points.filter((p) => p.parentNotified).length;
   const rows = filter === 'all' ? log.points : log.points.filter((p) => p.kind === filter);
+  const catMap = new Map<string, { key: string; kind: Kind; category: string; count: number; points: number }>();
+  for (const p of log.points) {
+    const k = `${p.kind}:${p.category}`;
+    const c = catMap.get(k) ?? { key: k, kind: p.kind, category: p.category, count: 0, points: 0 };
+    c.count++;
+    c.points += p.points;
+    catMap.set(k, c);
+  }
+  const cats_ = [...catMap.values()].sort((a, b) => b.count - a.count || b.points - a.points);
   const top = Math.max(1, ...log.classes.flatMap((c) => [c.merits, c.demerits]));
 
   const switchKind = (k: Kind) => {
@@ -90,6 +99,16 @@ export function Discipline({ actor }: { actor: Actor }) {
               </div>
             </div>
           )}
+          {cats_.length > 0 && (
+            <>
+              <p className="tb-section-title" style={{ marginBlockStart: 22 }}>Most used categories</p>
+              <div className="lrows">
+                {cats_.slice(0, 5).map((c) => (
+                  <ListRow key={c.key} icon={c.kind === 'merit' ? ThumbsUp : ThumbsDown} tone={c.kind === 'merit' ? undefined : 'warning'} title={c.category} sub={`${c.count} ${c.count === 1 ? 'entry' : 'entries'} · ${c.kind}`} value={`${c.kind === 'merit' ? '+' : '−'}${c.points}`} />
+                ))}
+              </div>
+            </>
+          )}
           <p className="tb-note" style={{ marginBlockStart: 16 }}><ShieldCheck size={14} aria-hidden />Individual students are not ranked. Only class totals are shown.</p>
         </Card>
 
@@ -136,10 +155,9 @@ export function Discipline({ actor }: { actor: Actor }) {
             { key: 'd', label: 'Date', render: (p) => <span className="tb-muted-cell">{formatDateTime(p.at)}</span> },
             { key: 's', label: 'Student', render: (p) => <span className="tb-who"><Avatar initials={p.student.initials} /><span><strong>{p.student.name}</strong><small>{p.student.classId}</small></span></span> },
             { key: 'k', label: 'Type', render: (p) => <Chip tone={p.kind === 'merit' ? 'success' : 'warning'}>{p.kind === 'merit' ? 'Merit' : 'Demerit'}</Chip> },
-            { key: 'c', label: 'Category', render: (p) => p.category },
+            { key: 'c', label: 'Category', render: (p) => <span style={{ whiteSpace: 'nowrap' }}>{p.category}</span> },
             { key: 'p', label: 'Points', align: 'end', render: (p) => <span className="tb-score">{p.kind === 'merit' ? '+' : '−'}{p.points}</span> },
-            { key: 'n', label: 'Note', render: (p) => <span className="tb-note-cell" title={p.note}>{p.note || '—'}</span> },
-            { key: 'b', label: 'By', render: (p) => <span className="tb-muted-cell">{p.by}</span> },
+            { key: 'n', label: 'Note · by', render: (p) => <span style={{ display: 'block', minWidth: 0 }}><span className="tb-note-cell" title={p.note}>{p.note || '—'}</span><span className="tb-muted-cell" style={{ fontSize: 12 }}>{p.by}</span></span> },
             { key: 'f', label: 'Family', align: 'end', render: (p) => (p.parentNotified ? <BellRing size={16} className="tb-icon-ok" aria-label="Family notified" /> : <BellOff size={16} className="tb-icon-off" aria-label="Family not notified" />) },
           ]}
         />
