@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, BookOpenCheck, CalendarClock, Check, ClipboardList, Clock, FileText, Library, LifeBuoy, ListChecks, MapPin, MessageCircleQuestion, PenLine, Timer, type LucideIcon } from 'lucide-react';
+import { Award, BookOpenCheck, Check, ClipboardList, Clock, FileText, Library, LifeBuoy, ListChecks, MapPin, MessageCircleQuestion, PenLine, Timer, type LucideIcon } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Progress, formatDate, formatTime, formatWeekday, useToast, errorText, type Tone } from '@school-intel/ui';
 import { DEMO_DATE, family, learn, nowIso, useDb } from '@school-intel/api';
 import { useFamily } from '../family-context';
@@ -162,7 +162,7 @@ export function StudentToday() {
             <div className="c1-exam">
               <div className="c1-exam-body">
                 <strong>{exam.title}</strong>
-                <span className="small muted"><CalendarClock size={13} aria-hidden style={{ verticalAlign: '-2px', marginInlineEnd: 4 }} />{exam.subject.name} · {formatDate(exam.date, { weekday: 'short', day: 'numeric', month: 'short' })}, {formatTime(exam.date)}</span>
+                <span className="small muted">{exam.subject.name} · {formatDate(exam.date, { weekday: 'short', day: 'numeric', month: 'short' })}, {formatTime(exam.date)}</span>
                 <span className="row wrap" style={{ gap: 6, marginBlockStart: 4 }}>
                   <Chip tone={exam.days <= 3 ? 'warning' : 'info'} dot={false}>{daysLabel(exam.days)}</Chip>
                   {exam.planTotal > 0 && <Chip tone="neutral" dot={false}>Plan {exam.planDone}/{exam.planTotal}</Chip>}

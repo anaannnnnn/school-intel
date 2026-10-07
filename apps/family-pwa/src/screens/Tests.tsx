@@ -193,8 +193,7 @@ function TodoTab({ onStart, busy }: { onStart: (r: Row) => void; busy: string })
                     to={`/written/${w.id}`}
                     tile={<SubjectTile subjectId={w.subject.id} hue={w.subject.hue} />}
                     title={w.title}
-                    sub={`${w.subject.name} · at least ${w.minWords} words`}
-                    end={<Chip tone="warning">Due {formatDate(w.due)}</Chip>}
+                    sub={<>{w.subject.name} · {w.minWords}+ words · <strong className="due">due {formatDate(w.due, { weekday: 'short', day: 'numeric', month: 'short' })}</strong></>}
                   />
                 ))}
               </div>
@@ -344,6 +343,7 @@ const TASK_ICON = { read: BookOpen, practise: Target, 'past-paper': FileText } a
 
 function PlanTab({ onPractise, busy }: { onPractise: (topicId: string) => void; busy: string }) {
   const { actor, child } = useFamily();
+  const [showAll, setShowAll] = useState(false);
   const plan = learn.examPlan(actor, child!.id);
 
   if (!plan.exams.length) {
@@ -356,7 +356,8 @@ function PlanTab({ onPractise, busy }: { onPractise: (topicId: string) => void; 
     );
   }
 
-  const days = [...new Set(plan.tasks.map((t) => t.date))];
+  const allDays = [...new Set(plan.tasks.map((t) => t.date))];
+  const days = showAll ? allDays : allDays.slice(0, 3);
   const exam = (id: string) => plan.exams.find((e) => e.id === id);
 
   return (
@@ -412,7 +413,7 @@ function PlanTab({ onPractise, busy }: { onPractise: (topicId: string) => void; 
                   <input type="checkbox" checked={t.done} onChange={() => learn.togglePlanTask(actor, t.id)} />
                   <span className="grow">
                     <strong>{t.label}</strong>
-                    <small><Icon size={12} aria-hidden style={{ verticalAlign: '-1px' }} /> {ex?.subject.name} · for {ex?.title}</small>
+                    <small><Icon size={12} aria-hidden className="task-kind" /> {ex?.subject.name} · {ex?.title}</small>
                   </span>
                   {t.kind === 'practise' && !t.done && d === DEMO_DATE ? (
                     <Button
@@ -436,6 +437,9 @@ function PlanTab({ onPractise, busy }: { onPractise: (topicId: string) => void; 
           </section>
         );
       })}
+      {allDays.length > days.length && (
+        <Button variant="secondary" block onClick={() => setShowAll(true)}>Show the full plan · {allDays.length - days.length} more days</Button>
+      )}
       <Callout tone="neutral" icon={PenLine}>Tick tasks off as you go. The plan updates after each quiz you finish.</Callout>
     </>
   );

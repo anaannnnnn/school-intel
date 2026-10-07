@@ -113,6 +113,8 @@ export function DoubtThread() {
         <div ref={end} />
       </div>
 
+      <AiNote />
+
       {escalated ? (
         <div className="c1-waiting" role="status">
           <Avatar initials={teacherInitials} />
@@ -156,8 +158,6 @@ export function DoubtThread() {
           </button>
         </form>
       )}
-
-      <AiNote />
 
       <Dialog
         open={confirm}

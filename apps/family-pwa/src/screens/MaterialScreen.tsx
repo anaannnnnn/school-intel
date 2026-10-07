@@ -74,6 +74,7 @@ export function MaterialScreen() {
       )}
 
       {aiAllowed && (
+        <div className="c1-modes">
         <Segmented<Mode>
           label="How to show this material"
           value={mode}
@@ -84,6 +85,7 @@ export function MaterialScreen() {
             { value: 'simple', label: 'Simpler' },
           ]}
         />
+        </div>
       )}
 
       <Card>

@@ -92,7 +92,7 @@ export function SubjectScreen() {
                     {t.materials.length} material{t.materials.length === 1 ? '' : 's'} · {t.score ? `${t.score.correct}/${t.score.total} marks so far` : 'not tested yet'}
                   </span>
                 </span>
-                {t.score ? <Ring pct={t.score.pct} size={46} color={ringColor(t.score.pct)} /> : <Chip dot={false}>New</Chip>}
+                {t.score ? <Ring pct={t.score.pct} size={50} color={ringColor(t.score.pct)} /> : <Chip dot={false}>New</Chip>}
                 <ChevronDown size={18} className="c1-topic-chev" aria-hidden />
               </button>
               {isOpen && (

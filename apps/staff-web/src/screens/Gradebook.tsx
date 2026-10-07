@@ -157,7 +157,7 @@ export function Gradebook({ actor }: { actor: Actor }) {
             </tfoot>
           </table>
         </div>
-        <Legend />
+        <Legend marking={false} />
       </Card>
 
       <Callout tone="info" icon={Info}>Grades sync to the SIS when the term report is approved (planned for phase 2). Until then, this gradebook is the working copy.</Callout>
@@ -166,13 +166,13 @@ export function Gradebook({ actor }: { actor: Actor }) {
   );
 }
 
-function Legend() {
+function Legend({ marking = true }: { marking?: boolean }) {
   return (
     <div className="tb-legend" aria-label="Legend">
       <span><span className="heat" data-band="high">75%+</span>Secure</span>
       <span><span className="heat" data-band="mid">50–74</span>Developing</span>
       <span><span className="heat" data-band="low">&lt;50</span>Needs support</span>
-      <span><Chip tone="warning" dot={false}>To mark</Chip>Awaiting your confirmation</span>
+      {marking && <span><Chip tone="warning" dot={false}>To mark</Chip>Awaiting teacher confirmation</span>}
       <span><span className="tb-empty-cell">—</span>Not submitted / no data</span>
     </div>
   );

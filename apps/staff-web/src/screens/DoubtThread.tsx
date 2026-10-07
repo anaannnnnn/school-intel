@@ -114,7 +114,7 @@ export function DoubtThread({ actor }: { actor: Actor }) {
             <CardHeader icon={UserRound} title="Student" />
             <div className="tb-who" style={{ marginBlockEnd: 14 }}>
               <Avatar initials={x.student.initials} />
-              <span><strong>{x.student.name}</strong><small>Year {x.student.classId} · SIS {x.student.sisId}</small></span>
+              <span><strong>{x.student.name}</strong><small>Year {x.student.classId} · {x.student.sisId}</small></span>
             </div>
             <dl className="kv">
               <dt>Class</dt><dd>{x.student.classId}</dd>

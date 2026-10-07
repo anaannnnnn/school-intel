@@ -83,7 +83,7 @@ export function StudyHelper() {
         <Card>
           <EmptyState
             icon={Lock}
-            title={child.yearGroup < 7 ? 'The study helper starts in Year 7' : 'The study helper is not available'}
+            title={child.yearGroup < 7 ? 'The study helper starts in Year\u00a07' : 'The study helper is not available'}
             action={
               <div className="stack-sm" style={{ width: '100%', maxWidth: 300 }}>
                 <Link to="/help" className="btn btn-brand"><LifeBuoy size={18} aria-hidden /> Get help from a person</Link>

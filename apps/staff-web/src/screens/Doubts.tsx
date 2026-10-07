@@ -77,8 +77,7 @@ export function Doubts({ actor }: { actor: Actor }) {
                   </span>
                 ),
               },
-              { key: 'st', label: 'Status', render: (r) => <DoubtStatus status={r.status} /> },
-              { key: 't', label: 'Asked', render: (r) => <span className="tb-muted-cell">{formatDateTime(r.createdAt)}</span> },
+              { key: 'st', label: 'Status · asked', render: (r) => <span className="stack-sm" style={{ gap: 4, alignItems: 'flex-start' }}><DoubtStatus status={r.status} /><span className="tb-muted-cell">{formatDateTime(r.createdAt)}</span></span> },
               { key: 'a', label: '', align: 'end', render: (r) => <span className="tb-link">{r.status === 'escalated' ? 'Reply' : 'Open'} <ArrowRight size={14} aria-hidden /></span> },
             ]}
           />

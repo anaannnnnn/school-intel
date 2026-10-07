@@ -17,7 +17,7 @@ interface Item {
 function MenuCard({ items, label }: { items: Item[]; label: string }) {
   return (
     <Card className="card-flush">
-      <ul className="menu" aria-label={label}>
+      <ul className="menu c1-menu" aria-label={label}>
         {items.map(({ to, icon: Icon, label: l, hint, tone }) => (
           <li key={to}>
             <Link to={to}>
@@ -45,14 +45,14 @@ export function Me() {
 
   const school: Item[] = [
     { to: '/timetable', icon: CalendarDays, label: 'Timetable', hint: lessonsToday ? `${lessonsToday} lessons today` : 'Your week of lessons' },
-    { to: '/grades', icon: GraduationCap, label: 'Grades', hint: 'Released quiz, test and written results', tone: 'success' },
+    { to: '/grades', icon: GraduationCap, label: 'Grades', hint: 'Quiz, test and written results', tone: 'success' },
     { to: '/attendance', icon: CalendarCheck, label: 'Attendance', hint: `${attendance.rate}% this term`, tone: 'info' },
     { to: '/behaviour', icon: Award, label: 'Merits & behaviour', hint: `${behaviour.merits} merit point${behaviour.merits === 1 ? '' : 's'}`, tone: 'warning' },
-    { to: '/learning', icon: BookMarked, label: 'Learning passport', hint: 'What you can do and what to practise' },
+    { to: '/learning', icon: BookMarked, label: 'Learning passport', hint: 'Strengths and next steps' },
     { to: '/tasks', icon: ClipboardList, label: 'Assignments', hint: 'Due dates and submission receipts' },
   ];
   const app: Item[] = [
-    { to: '/help', icon: LifeBuoy, label: 'Help & support', hint: 'Talk to a trusted adult, in confidence', tone: 'danger' },
+    { to: '/help', icon: LifeBuoy, label: 'Help & support', hint: 'Talk to a trusted adult', tone: 'danger' },
     { to: '/notifications', icon: Bell, label: 'Notifications', hint: 'Recent updates' },
     { to: '/settings', icon: Settings, label: 'Settings', hint: 'Language, theme and alerts' },
   ];
