@@ -114,7 +114,7 @@ function MarkView({ actor, item }: { actor: Actor; item: Item }) {
     <>
       <PageHead
         title={<span className="row" style={{ gap: 14 }}><Avatar initials={row.student.initials} size="lg" />{row.student.name}</span>}
-        sub={<span className="row wrap" style={{ gap: 8 }}><SubjectDot hue={row.subject.hue} />{row.subject.name} · {row.title} · submitted {formatDateTime(row.submittedAt)}</span>}
+        sub={<><SubjectDot hue={row.subject.hue} className="tb-inline-dot" />{row.subject.name} · {row.title} · submitted {formatDateTime(row.submittedAt)}</>}
         spec="Teaching · AI-assisted marking"
         actions={
           <div className="tb-pager">

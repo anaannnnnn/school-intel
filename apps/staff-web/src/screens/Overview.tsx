@@ -184,10 +184,10 @@ function TeachingDay({ actor, summary: t, title, pendingDrafts, approved, cases,
         <Stat icon={CalendarDays} value={t.lessons.length} label="Lessons today" spark={weekSpark.some(Boolean) ? weekSpark : undefined} foot={mine.length !== t.lessons.length ? `${mine.length} yours · ${t.lessons.length - mine.length} as tutor` : 'Mon–Fri this week'} />
         <Stat icon={CalendarCheck} value={toTake.length} label="Registers to take" tone={due.length ? 'warning' : undefined} to={toTake[0] ? `/lessons/${toTake[0].register!.id}` : '/lessons'} delta={regs.length ? { value: `${regs.length - toTake.length}/${regs.length} done` } : undefined} foot={due.length ? `${due.length} due now` : undefined} />
         <Stat icon={PenLine} value={t.toMark} label="Answers to confirm" tone={t.toMark ? 'warning' : undefined} to="/marking" spark={markSpark.some(Boolean) ? markSpark : undefined} delta={markSpark[4] ? { value: `+${markSpark[4]} today` } : undefined} foot="AI suggests, you decide" />
-        <Stat icon={MessageCircleQuestion} value={t.escalated} label="Student questions waiting" tone={t.escalated ? 'warning' : undefined} to="/doubts" spark={doubtSpark.some(Boolean) ? doubtSpark : undefined} delta={doubtSpark[4] ? { value: `+${doubtSpark[4]} today` } : undefined} foot="Escalated from the study helper" />
+        <Stat icon={MessageCircleQuestion} value={t.escalated} label="Student questions waiting" tone={t.escalated ? 'warning' : undefined} to="/doubts" spark={doubtSpark.some(Boolean) ? doubtSpark : undefined} delta={doubtSpark[4] ? { value: `+${doubtSpark[4]} today` } : undefined} foot="From the study helper" />
       </div>
 
-      <div className="grid-main">
+      <div className="grid-main tb-dash">
         <div className="stack">
           <Card>
             <CardHeader icon={CalendarClock} title="Today’s lessons" sub="Tap a lesson to take or review its register" action={<Link to="/lessons" className="tb-link">All lessons <ArrowRight size={14} aria-hidden /></Link>} />
@@ -243,7 +243,7 @@ function TeachingDay({ actor, summary: t, title, pendingDrafts, approved, cases,
           </Card>
         </div>
 
-        <Card>
+        <Card className="tb-needs">
           <CardHeader icon={ListTodo} tone={needs.length ? 'warning' : undefined} title="Needs you" sub={needs.length ? `${needs.length} item${needs.length === 1 ? '' : 's'} waiting` : 'You are all caught up'} />
           {needs.length === 0 ? (
             <EmptyState icon={CircleCheck} title="Nothing waiting">Marking, student questions and AI drafts will appear here.</EmptyState>

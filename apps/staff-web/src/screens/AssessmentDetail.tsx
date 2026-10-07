@@ -133,7 +133,7 @@ function DetailView({ actor, data }: { actor: Actor; data: Detail }) {
       </div>
 
       <div className="grid-main">
-        <Card className="card-flush">
+        <Card className="card-flush ta-flush">
           <div className="table-toolbar" style={{ paddingBlockEnd: 0 }}>
             <Tabs
               label="Assessment views"

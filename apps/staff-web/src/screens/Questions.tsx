@@ -218,7 +218,7 @@ export function Questions({ actor }: { actor: Actor }) {
         )}
       </div>
 
-      <Card className="card-flush">
+      <Card className="card-flush ta-flush">
         <div className="table-toolbar">
           <h2 className="card-title">All questions <span className="ta-id">· {rows.length} shown</span></h2>
           <div className="toolbar" role="group" aria-label="Filter questions">

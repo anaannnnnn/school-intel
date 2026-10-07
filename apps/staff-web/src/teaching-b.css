@@ -192,3 +192,8 @@
 
 /* Keep change badges on one line in Stat footers */
 .stat-foot .delta { flex: none; white-space: nowrap; }
+.tb-inline-dot { margin-inline-end: 8px; vertical-align: 0; }
+.tb-dash > * { min-width: 0; }
+@media (max-width: 1180px) {
+  .tb-dash > .tb-needs { order: -1; }
+}

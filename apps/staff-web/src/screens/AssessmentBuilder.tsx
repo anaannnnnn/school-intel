@@ -231,7 +231,7 @@ function Builder({ actor }: { actor: Actor }) {
 
       {paper && (
         <div className="grid-main">
-          <Card className="card-flush">
+          <Card className="card-flush ta-flush">
             <CardHeader icon={ClipboardList} title="Selected questions" sub="Remove anything you do not want; rebuild to start again" action={<AiTag>AI-selected</AiTag>} />
             <div className="ta-card-gap" />
             {paper.length < requested && (

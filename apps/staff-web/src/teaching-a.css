@@ -1,7 +1,7 @@
 /* Teaching screens (lessons, registers, materials, question bank, assessments).
    Extends the Ledger kit in staff.css; every class is prefixed `ta-`. */
 
-.ta-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.ta-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ta-trunc { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ta-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .ta-subj { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
@@ -44,7 +44,7 @@
 
 /* ---------- Register roster ---------- */
 .ta-roster { display: flex; flex-direction: column; }
-.ta-roster-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; align-items: center; gap: 16px; padding: 12px 22px; border-block-start: 1px solid var(--color-border); }
+.ta-roster-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 324px; align-items: center; gap: 16px; padding: 12px 22px; border-block-start: 1px solid var(--color-border); }
 .ta-roster-row:first-child { border-block-start: 0; }
 .ta-roster-row[data-mark='absent'] { background: linear-gradient(90deg, color-mix(in srgb, var(--color-danger) 6%, transparent), transparent 40%); }
 .ta-roster-row[data-mark='late'] { background: linear-gradient(90deg, color-mix(in srgb, var(--color-warning-solid) 7%, transparent), transparent 40%); }
@@ -54,10 +54,10 @@
 .ta-rate { font-family: var(--font-mono); font-size: 13px; text-align: end; white-space: nowrap; }
 .ta-rate[data-warn='true'] { color: var(--color-warning-solid); font-weight: 600; }
 .ta-rate small { display: block; font-family: var(--font-body); font-size: 11px; color: var(--color-muted); font-weight: 400; }
-.ta-roster-head { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; gap: 16px; padding: 10px 22px; border-block: 1px solid var(--color-border); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); }
+.ta-roster-head { display: grid; grid-template-columns: minmax(0, 1fr) 96px 324px; gap: 16px; padding: 10px 22px; border-block: 1px solid var(--color-border); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); }
 .ta-roster-head span:nth-child(2) { text-align: end; }
 
-.ta-presence { display: inline-grid; grid-template-columns: repeat(4, auto); gap: 2px; padding: 3px; border-radius: 8px; background: var(--color-subtle); }
+.ta-presence { justify-self: end; display: inline-grid; grid-template-columns: repeat(4, auto); gap: 2px; padding: 3px; border-radius: 8px; background: var(--color-subtle); }
 .ta-presence label { position: relative; display: block; cursor: pointer; }
 .ta-presence input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .ta-presence span { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 34px; min-width: 76px; padding: 0 10px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--color-muted); transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out); }
@@ -182,3 +182,7 @@
   .ta-totals { padding: 12px 16px; }
   .ta-gen { grid-template-columns: 1fr; }
 }
+
+/* staff.css sets .card padding after components.css, which cancels .card-flush; restore it for these screens. */
+.card.ta-flush { padding: 0; overflow: hidden; }
+.card.ta-flush > .card-header { padding: 22px 22px 0; }

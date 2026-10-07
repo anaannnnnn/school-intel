@@ -94,7 +94,7 @@ function RegisterView({ actor, data }: { actor: Actor; data: ReturnType<typeof t
         </Callout>
       )}
 
-      <Card className="card-flush">
+      <Card className="card-flush ta-flush">
         <div className="table-toolbar">
           <div className="stack-sm" style={{ gap: 6 }}>
             <div className="row wrap" style={{ gap: 10 }}>

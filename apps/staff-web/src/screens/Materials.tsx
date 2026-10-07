@@ -63,7 +63,7 @@ export function Materials({ actor }: { actor: Actor }) {
         </Callout>
       )}
 
-      <Card className="card-flush">
+      <Card className="card-flush ta-flush">
         <div className="table-toolbar" style={{ paddingBlockEnd: 0, alignItems: 'flex-end' }}>
           <Tabs
             label="Filter by status"

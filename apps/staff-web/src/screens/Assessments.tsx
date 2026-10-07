@@ -72,7 +72,7 @@ export function Assessments({ actor }: { actor: Actor }) {
       </div>
 
       <div className="grid-main">
-        <Card className="card-flush">
+        <Card className="card-flush ta-flush">
           <div className="table-toolbar" style={{ paddingBlockEnd: 0 }}>
             <Tabs
               label="Assessment status"
