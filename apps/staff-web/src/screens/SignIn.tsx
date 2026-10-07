@@ -1,16 +1,26 @@
 import { useState } from 'react';
-import { KeyRound, ShieldCheck } from 'lucide-react';
+import { CheckCircle, KeyRound, ShieldCheck } from 'lucide-react';
 import { Avatar, Button, Callout, TextField } from '@school-intel/ui';
 import { SCHOOL, setSession, staff } from '@school-intel/api';
 
 const ROLE_HINT: Record<string, string> = {
-  'st-nadia': 'Teacher Copilot, homework, passport',
+  'st-nadia': 'Maths: lessons, registers, question bank and Copilot',
+  'st-priya': 'Science: tests and AI-assisted marking',
+  'st-james': 'English: written work and feedback',
+  'st-huda': 'Arabic: materials and quizzes',
   'st-aisha': 'Support cases and safeguarding',
   'st-daniel': 'Teaching, pastoral and clubs',
   'st-layla': 'Family requests and attendance',
   'st-karim': 'Connectors, mapping and audit',
   'st-samira': 'Aggregate measures and audit',
 };
+
+const POINTS = [
+  'Registers, materials and quizzes for the lessons you teach',
+  'AI suggests marks with evidence; you confirm every one before release',
+  'Student questions get hints first, then reach the subject teacher',
+  'Role-based access, MFA and a full audit log',
+];
 
 export function SignIn() {
   const people = staff.staffDirectory();
@@ -23,15 +33,23 @@ export function SignIn() {
   return (
     <div className="signin-wrap">
       <aside className="signin-side">
-        <div>
-          <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 26, color: '#fff' }}>DEVX</div>
-          <div className="small">School Intelligence</div>
+        <div className="side-brand">
+          <span className="side-logo" aria-hidden>DX</span>
+          <span>
+            <strong>DEVX</strong>
+            <small>School Intelligence</small>
+          </span>
         </div>
-        <div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
           <h1>Your school day, connected and accountable.</h1>
-          <p>Teacher-approved drafts, assigned support cases, family requests and data health in one staff workspace. Source systems stay authoritative.</p>
+          <p>Lessons, marking, student support and family requests in one staff workspace. Source systems stay authoritative.</p>
         </div>
-        <p className="small" style={{ color: '#8fb3a8' }}>Fictional pilot school · Demonstration data only</p>
+        <div className="signin-points">
+          {POINTS.map((t) => (
+            <div key={t}><CheckCircle size={16} aria-hidden />{t}</div>
+          ))}
+        </div>
+        <p className="small" style={{ position: 'relative', zIndex: 1, opacity: 0.75 }}>Fictional pilot school · Demonstration data only</p>
       </aside>
 
       <main className="signin-main enter" key={step}>
@@ -56,7 +74,7 @@ export function SignIn() {
             <TextField label="School email" value={person.email} readOnly />
             <div className="row wrap">
               <Button icon={KeyRound} onClick={() => setStep('mfa')}>Continue with school SSO</Button>
-              <a className="btn btn-ghost" href="../family-pwa/index.html">Open the family app instead</a>
+              <a className="btn btn-secondary" href="../family-pwa/index.html">Open the family app instead</a>
             </div>
           </>
         ) : (
@@ -78,7 +96,7 @@ export function SignIn() {
             <Callout tone="neutral" icon={ShieldCheck}>Sessions expire after 8 hours of inactivity. Access is recorded in the audit log.</Callout>
             <div className="row">
               <Button type="submit" busy={busy} disabled={code.length !== 6}>Verify and continue</Button>
-              <Button variant="ghost" onClick={() => setStep('pick')}>Back</Button>
+              <Button variant="secondary" onClick={() => setStep('pick')}>Back</Button>
             </div>
           </form>
         )}

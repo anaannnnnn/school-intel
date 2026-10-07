@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ArrowRight, GraduationCap, ShieldCheck, Users } from 'lucide-react';
-import { Button, Callout, Card, TextField, errorText } from '@school-intel/ui';
+import { ArrowRight, BookOpen, Check, ClipboardCheck, GraduationCap, MessageCircleQuestion, ShieldCheck, Users } from 'lucide-react';
+import { Avatar, Button, Callout, Card, TextField, errorText } from '@school-intel/ui';
 import { family, SCHOOL, setSession } from '@school-intel/api';
+import '../student-c2.css';
 
 type Step = 'choose' | 'guardian' | 'student';
 
@@ -31,15 +32,20 @@ export function SignIn() {
   return (
     <div className="signin">
       <div className="signin-hero">
-        <div className="wordmark" style={{ color: '#fff' }}>
-          <span className="wordmark-mark" style={{ background: 'rgba(255,255,255,.12)' }}>DEVX</span>
+        <div className="wordmark">
+          <span className="wordmark-mark">DEVX</span>
           <span className="wordmark-text">
-            <span style={{ color: '#fff' }}>School Intelligence</span>
-            <small style={{ color: '#9fc0b5' }}>{SCHOOL.name}</small>
+            <span>School Intelligence</span>
+            <small>{SCHOOL.name}</small>
           </span>
         </div>
         <h1>A calmer school day. A clearer next step.</h1>
         <p>Today’s plan, learning updates and school requests in one place.</p>
+        <ul className="hero-features" aria-label="What you can do">
+          <li><span aria-hidden><BookOpen size={14} /></span>Lessons &amp; homework</li>
+          <li><span aria-hidden><ClipboardCheck size={14} /></span>Tests &amp; results</li>
+          <li><span aria-hidden><MessageCircleQuestion size={14} /></span>Ask for help</li>
+        </ul>
       </div>
 
       <main className="signin-body enter" key={step}>
@@ -118,7 +124,17 @@ export function SignIn() {
               <p className="eyebrow">School sign-in</p>
               <h2 style={{ fontSize: 'var(--text-2xl)' }}>Welcome back</h2>
             </div>
-            <TextField label="School email" value="sara.ahmed@students.horizon.example" readOnly />
+            <div className="stack-sm" role="group" aria-label="Choose your account">
+              <p className="field-label">Choose your account</p>
+              <button type="button" className="account-pick" aria-pressed="true">
+                <Avatar initials="SA" />
+                <span className="grow">
+                  <strong>Sara Ahmed · Year 7</strong>
+                  <small>sara.ahmed@students.horizon.example</small>
+                </span>
+                <span className="tick" aria-hidden><Check size={14} /></span>
+              </button>
+            </div>
             <Callout tone="info">You will continue with {SCHOOL.name} single sign-on. This demo signs you in as Sara Ahmed, Year 7A.</Callout>
             <Button block busy={busy} onClick={studentSso}>Continue with school SSO</Button>
             <Button variant="ghost" onClick={() => setStep('choose')}>Back</Button>

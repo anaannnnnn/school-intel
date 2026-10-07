@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CalendarCheck, ClipboardList, FileText, HeartHandshake, Inbox, Lock, ShieldCheck, Trophy, Users } from 'lucide-react';
+import { CalendarCheck, ClipboardList, FileText, GraduationCap, HeartHandshake, Inbox, Lock, MessageCircleQuestion, ShieldCheck, Trophy, Users } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Dialog, TextArea, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { staff, useDb } from '@school-intel/api';
+import { staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
-import { PageFoot, PageHead, Restricted } from '../ui';
+import { Heat, PageFoot, PageHead, Restricted, SubjectDot } from '../ui';
+import '../teaching-b.css';
 import { CASE, REQUEST } from '../statuses';
 
 export function StudentProfile({ actor }: { actor: Actor }) {
@@ -32,6 +33,8 @@ export function StudentProfile({ actor }: { actor: Actor }) {
         spec="Student record · role-filtered"
         actions={<Link to="/students" className="btn btn-secondary">All students</Link>}
       />
+
+      <LearningRecord actor={actor} studentId={p.id} firstName={p.firstName} />
 
       <div className="grid-main">
         <div className="stack">
@@ -152,5 +155,72 @@ export function StudentProfile({ actor }: { actor: Actor }) {
         <TextArea label="Reason" value={reason} onChange={(e) => { setReason(e.target.value); setError(''); }} error={error} placeholder="For example: custody update received from the SIS" rows={3} />
       </Dialog>
     </>
+  );
+}
+
+const PRESENCE_LABEL = { present: 'Present', late: 'Late', absent: 'Absent', excused: 'Excused' } as const;
+
+function LearningRecord({ actor, studentId, firstName }: { actor: Actor; studentId: string; firstName: string }) {
+  let r;
+  try {
+    r = teach.learningRecord(actor, studentId);
+  } catch {
+    return null;
+  }
+  const a = r.attendance;
+  const strip = a.days.slice(-30);
+  const recent = r.behaviour.slice(0, 5);
+  const merits = r.behaviour.filter((b) => b.kind === 'merit').reduce((n, b) => n + b.points, 0);
+  const demerits = r.behaviour.filter((b) => b.kind === 'demerit').reduce((n, b) => n + b.points, 0);
+  return (
+    <Card>
+      <CardHeader icon={GraduationCap} title="Learning record" sub="Attendance, marked work, merits and study helper use this term" />
+      <div className="tb-record">
+        <div>
+          <span className="tb-section-title">Attendance</span>
+          <span className="tb-big">{a.rate}%</span>
+          <div className="tb-strip" role="img" aria-label={`Last ${strip.length} school days: ${a.present} present, ${a.late} late, ${a.absent} absent, ${a.excused} excused`}>
+            {strip.map((x) => <i key={x.date} data-s={x.status} title={`${formatDate(x.date, { weekday: 'short', day: 'numeric', month: 'short' })}: ${PRESENCE_LABEL[x.status]}`} />)}
+          </div>
+          <div className="tb-counts">
+            <span><b>{a.present}</b>present</span>
+            <span><b>{a.late}</b>late</span>
+            <span><b>{a.absent}</b>absent</span>
+            <span><b>{a.excused}</b>excused</span>
+          </div>
+        </div>
+        <div>
+          <span className="tb-section-title">Subject averages</span>
+          <ul className="tb-grade-list">
+            {r.grades.length === 0 && <li className="muted">No subjects for this class.</li>}
+            {r.grades.map((g) => (
+              <li key={g.subject.id}>
+                <SubjectDot hue={g.subject.hue} />
+                <span>{g.subject.name}<span className="muted"> · {g.count} marked</span></span>
+                <Heat pct={g.average} label={`${g.subject.name} average`} />
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <span className="tb-section-title">Merits and discipline · +{merits} / −{demerits}</span>
+          {recent.length === 0 ? <p className="small muted">No points recorded this term.</p> : (
+            <ul className="tb-pt-list">
+              {recent.map((b) => (
+                <li key={b.id} data-kind={b.kind}>
+                  <span>{b.kind === 'merit' ? '+' : '−'}{b.points}</span>
+                  <span>{b.category}<small>{b.by} · {formatDate(b.at)}</small></span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <span className="tb-section-title">Study helper</span>
+          <span className="row" style={{ gap: 10 }}><span className="card-icon" aria-hidden><MessageCircleQuestion size={16} /></span><span className="tb-big">{r.doubts}</span></span>
+          <p className="small muted">Question{r.doubts === 1 ? '' : 's'} {firstName} asked the study helper. Hints only; escalations go to the subject teacher.</p>
+        </div>
+      </div>
+    </Card>
   );
 }

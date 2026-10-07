@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bus, CalendarCheck, CircleCheck, ClipboardList, FileText, MessageSquareText, Timer, Trophy, TriangleAlert, Users } from 'lucide-react';
+import { ArrowRight, Award, Bus, CalendarCheck, CircleCheck, ClipboardList, FileText, GraduationCap, MessageSquareText, Sparkles, Timer, Trophy, TriangleAlert, Users } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Checkbox, Chip, Dialog, Freshness, formatDate, formatTime, formatWeekday, useToast } from '@school-intel/ui';
-import { DEMO_DATE, family, useDb } from '@school-intel/api';
+import { DEMO_DATE, family, learn, useDb } from '@school-intel/api';
 import type { FeedItem } from '@school-intel/contracts';
 import { ChildSwitcher } from '../Shell';
 import { useFamily } from '../family-context';
 import { NoChildren } from './NoChildren';
+import { daysLabel } from '../kit';
+import '../student-c2.css';
 
-const SUBJECT_COLORS = ['#6d5df6', '#9a8cfa', '#ffb4c8', '#cfc8fb'];
+const SUBJECT_COLORS = [
+  'var(--color-brand)',
+  'color-mix(in srgb, var(--color-brand) 55%, var(--color-surface))',
+  'var(--color-accent-2)',
+  'color-mix(in srgb, var(--color-brand) 28%, var(--color-surface))',
+];
 
 export function greeting() {
   const h = new Date(Date.now() + 4 * 3600_000).getUTCHours();
@@ -27,11 +34,27 @@ export function ParentToday() {
   if (!child) return <NoChildren />;
 
   const view = family.feed(actor, child.id);
-  const glance = view.items.filter((i) => ['attendance', 'activity', 'report'].includes(i.kind));
+  // Attendance is summarised in the hero card; the glance keeps the rest of the day.
+  const glance = view.items.filter((i) => ['activity', 'report'].includes(i.kind));
+  const attendance = view.items.find((i) => i.kind === 'attendance');
   const homework = view.items.filter((i) => i.kind === 'homework');
   const actions = view.items.filter((i) => i.kind === 'action');
   const minutes = homework.reduce((s, i) => s + (i.minutes ?? 0), 0);
   const pendingAction = actions.find((a) => a.status === 'action-needed');
+  const news = family
+    .notificationsFor(actor)
+    .filter((n) => /result|merit|behaviour|feedback/i.test(n.title))
+    .slice(0, 3);
+  // Year 4 and new students may have no learning records yet.
+  let next: { title: string; when: string } | undefined;
+  try {
+    const day = learn.studentDay(actor, child.id);
+    const test = day.tests.upcoming.find((t) => t.kind === 'test');
+    if (day.nextExam) next = { title: `${day.nextExam.subject.short} · ${day.nextExam.title}`, when: daysLabel(day.nextExam.days) };
+    else if (test) next = { title: `${test.subject.short} · ${test.title}`, when: formatDate(test.opensAt) };
+  } catch {
+    next = undefined;
+  }
 
   return (
     <>
@@ -42,27 +65,58 @@ export function ParentToday() {
 
       <ChildSwitcher />
 
+      <section className="hero-card" aria-label={`${child.firstName}’s day`}>
+        <span className="eyebrow">{child.firstName}’s day · Year {child.classId}</span>
+        <div className="hero-day">
+          <span className="hero-num">{minutes}<small>min</small></span>
+          <p>homework tonight{homework.length ? ` · ${homework.length} ${homework.length === 1 ? 'task' : 'tasks'} due tomorrow` : ''}</p>
+        </div>
+        <div className="stack-sm">
+          <span className="hero-line"><CalendarCheck size={16} aria-hidden /> {attendance ? `${attendance.title} · ${attendance.detail}` : 'Register not taken yet today'}</span>
+          {next && <span className="hero-line"><GraduationCap size={16} aria-hidden /> {next.title} · {next.when}</span>}
+        </div>
+        <Link to="/progress" className="btn btn-sm">See progress <ArrowRight size={16} aria-hidden className="flip-rtl" /></Link>
+      </section>
+
+      {news.length > 0 && (
+        <Card>
+          <CardHeader icon={Sparkles} title="New results and merits" />
+          <ul className="glance">
+            {news.map((n) => (
+              <li key={n.id}>
+                <span className="glance-icon" data-tone={/merit/i.test(n.title) ? 'success' : 'info'} aria-hidden>{/merit/i.test(n.title) ? <Award size={16} /> : <GraduationCap size={16} />}</span>
+                <Link to={n.link && n.link !== '/today' ? n.link : '/progress'} className="glance-body" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  <span className="glance-title">{n.title}</span>
+                  <span className="glance-detail">{n.body}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       {view.lmsStale && (
         <Callout tone="warning" title="Some school systems are not responding">
           Homework below is the last confirmed copy from {formatTime(view.lastSync.LMS)}. It may have changed.
         </Callout>
       )}
 
-      <Card>
-        <CardHeader icon={CircleCheck} title="Today at a glance" sub={`${child.firstName} · Year ${child.classId}`} />
-        <ul className="glance">
-          {glance.map((i) => (
-            <GlanceRow key={i.id} item={i} />
-          ))}
-        </ul>
-      </Card>
+      {glance.length > 0 && (
+        <Card>
+          <CardHeader icon={CircleCheck} title="Also today" sub={`${child.firstName} · Year ${child.classId}`} />
+          <ul className="glance">
+            {glance.map((i) => (
+              <GlanceRow key={i.id} item={i} />
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <Card>
         <CardHeader
           icon={Timer}
           title="Tonight’s plan"
           sub="Teacher estimates for homework due tomorrow"
-          action={<span className="plan-total tabular">{minutes}<small className="small muted" style={{ fontFamily: 'var(--font-body)', fontWeight: 500 }}> min</small></span>}
         />
         {homework.length > 0 ? (
           <>
