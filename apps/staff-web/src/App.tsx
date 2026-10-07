@@ -26,6 +26,20 @@ import { Activities } from './screens/Activities';
 import { Leadership } from './screens/Leadership';
 import { Integrations } from './screens/Integrations';
 import { AuditLog } from './screens/AuditLog';
+import { Lessons } from './screens/Lessons';
+import { RegisterScreen } from './screens/Register';
+import { Materials } from './screens/Materials';
+import { MaterialEditor } from './screens/MaterialEditor';
+import { Questions } from './screens/Questions';
+import { Assessments } from './screens/Assessments';
+import { AssessmentBuilder } from './screens/AssessmentBuilder';
+import { AssessmentDetail } from './screens/AssessmentDetail';
+import { Marking } from './screens/Marking';
+import { MarkItem } from './screens/MarkItem';
+import { Doubts } from './screens/Doubts';
+import { DoubtThread } from './screens/DoubtThread';
+import { Gradebook } from './screens/Gradebook';
+import { Discipline } from './screens/Discipline';
 
 function Guard({ actor, area, children }: { actor: Actor; area: string; children: ReactNode }) {
   const allowed = staff.canAccessArea(actor, area);
@@ -72,6 +86,20 @@ export function App() {
               <Route path="/leadership" element={<Guard actor={actor} area="leadership"><Leadership actor={actor} /></Guard>} />
               <Route path="/integrations" element={<Guard actor={actor} area="integrations"><Integrations actor={actor} /></Guard>} />
               <Route path="/audit" element={<Guard actor={actor} area="audit"><AuditLog actor={actor} /></Guard>} />
+              <Route path="/lessons" element={<Guard actor={actor} area="lessons"><Lessons actor={actor} /></Guard>} />
+              <Route path="/lessons/:id" element={<Guard actor={actor} area="lessons"><RegisterScreen actor={actor} /></Guard>} />
+              <Route path="/materials" element={<Guard actor={actor} area="materials"><Materials actor={actor} /></Guard>} />
+              <Route path="/materials/:id" element={<Guard actor={actor} area="materials"><MaterialEditor actor={actor} /></Guard>} />
+              <Route path="/questions" element={<Guard actor={actor} area="questions"><Questions actor={actor} /></Guard>} />
+              <Route path="/assessments" element={<Guard actor={actor} area="assessments"><Assessments actor={actor} /></Guard>} />
+              <Route path="/assessments/new" element={<Guard actor={actor} area="assessments"><AssessmentBuilder actor={actor} /></Guard>} />
+              <Route path="/assessments/:id" element={<Guard actor={actor} area="assessments"><AssessmentDetail actor={actor} /></Guard>} />
+              <Route path="/marking" element={<Guard actor={actor} area="marking"><Marking actor={actor} /></Guard>} />
+              <Route path="/marking/:key" element={<Guard actor={actor} area="marking"><MarkItem actor={actor} /></Guard>} />
+              <Route path="/doubts" element={<Guard actor={actor} area="doubts"><Doubts actor={actor} /></Guard>} />
+              <Route path="/doubts/:id" element={<Guard actor={actor} area="doubts"><DoubtThread actor={actor} /></Guard>} />
+              <Route path="/gradebook" element={<Guard actor={actor} area="gradebook"><Gradebook actor={actor} /></Guard>} />
+              <Route path="/discipline" element={<Guard actor={actor} area="discipline"><Discipline actor={actor} /></Guard>} />
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Route>
           </Routes>

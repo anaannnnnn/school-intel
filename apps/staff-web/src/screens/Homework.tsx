@@ -6,8 +6,8 @@ import type { Actor, HomeworkItem } from '@school-intel/contracts';
 import { DataTable, PageFoot, PageHead, Stat } from '../ui';
 
 // Validated two-series palette (dataviz validator: CVD ΔE 16.4, contrast ≥ 3:1).
-const PUBLISHED = '#008a76';
-const PROPOSED = '#5b6fd6';
+const PUBLISHED = '#0f7c7a';
+const PROPOSED = '#2e5bff';
 const DAYS: Record<string, string> = { '2026-10-05': 'Monday', '2026-10-06': 'Tuesday', '2026-10-07': 'Wednesday', '2026-10-08': 'Thursday', '2026-10-09': 'Friday' };
 
 export function Homework({ actor }: { actor: Actor }) {

@@ -23,6 +23,21 @@ import { Bus } from './screens/Bus';
 import { Settings } from './screens/Settings';
 import { More } from './screens/More';
 import { Notifications } from './screens/Notifications';
+import { Learn } from './screens/Learn';
+import { SubjectScreen } from './screens/SubjectScreen';
+import { MaterialScreen } from './screens/MaterialScreen';
+import { StudyHelper } from './screens/StudyHelper';
+import { DoubtThread } from './screens/DoubtThread';
+import { Me } from './screens/Me';
+import { Tests } from './screens/Tests';
+import { Player } from './screens/Player';
+import { Result } from './screens/Result';
+import { WrittenTask } from './screens/WrittenTask';
+import { AttendanceScreen } from './screens/AttendanceScreen';
+import { Grades } from './screens/Grades';
+import { BehaviourScreen } from './screens/BehaviourScreen';
+import { Timetable } from './screens/Timetable';
+import { Progress } from './screens/Progress';
 
 export function App() {
   const actor = useSession('family');
@@ -52,7 +67,21 @@ export function App() {
                 <Route path="/learning" element={<Learning />} />
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/tasks/:id" element={<AssignmentScreen />} />
-                <Route path="/ask" element={<Concierge />} />
+                <Route path="/ask" element={actor.kind === 'student' ? <StudyHelper /> : <Concierge />} />
+                <Route path="/ask/:id" element={<DoubtThread />} />
+                <Route path="/learn" element={<Learn />} />
+                <Route path="/learn/:subjectId" element={<SubjectScreen />} />
+                <Route path="/material/:id" element={<MaterialScreen />} />
+                <Route path="/tests" element={<Tests />} />
+                <Route path="/tests/play/:attemptId" element={<Player />} />
+                <Route path="/tests/result/:attemptId" element={<Result />} />
+                <Route path="/written/:id" element={<WrittenTask />} />
+                <Route path="/me" element={<Me />} />
+                <Route path="/progress" element={<Progress />} />
+                <Route path="/attendance" element={<AttendanceScreen />} />
+                <Route path="/grades" element={<Grades />} />
+                <Route path="/behaviour" element={<BehaviourScreen />} />
+                <Route path="/timetable" element={<Timetable />} />
                 <Route path="/requests" element={<Requests />} />
                 <Route path="/requests/new/early-collection" element={<EarlyCollection />} />
                 <Route path="/requests/:id" element={<RequestDetail />} />

@@ -45,7 +45,7 @@ export function More() {
           <li>
             <a href="tel:+97140000000">
               <span className="card-icon" data-tone="neutral" aria-hidden><Phone size={18} /></span>
-              <span className="grow">Call the school office<small>Sun–Thu, 07:00–15:30</small></span>
+              <span className="grow">Call the school office<small>Mon–Fri, 07:00–15:30</small></span>
             </a>
           </li>
           <li>

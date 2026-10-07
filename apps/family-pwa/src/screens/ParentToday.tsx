@@ -8,7 +8,7 @@ import { ChildSwitcher } from '../Shell';
 import { useFamily } from '../family-context';
 import { NoChildren } from './NoChildren';
 
-const SUBJECT_COLORS = ['#067a69', '#3f8f7f', '#8cc2b2', '#c6e1d6'];
+const SUBJECT_COLORS = ['#6d5df6', '#9a8cfa', '#ffb4c8', '#cfc8fb'];
 
 export function greeting() {
   const h = new Date(Date.now() + 4 * 3600_000).getUTCHours();

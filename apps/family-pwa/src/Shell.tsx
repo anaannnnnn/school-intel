@@ -1,13 +1,14 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, BookOpen, ChevronLeft, ClipboardList, House, Inbox, LayoutGrid, LifeBuoy, MessageSquareText, type LucideIcon } from 'lucide-react';
+import { Bell, ChartNoAxesColumn, ChevronLeft, House, Inbox, LayoutGrid, Library, MessageCircleQuestion, MessageSquareText, PenLine, UserRound, type LucideIcon } from 'lucide-react';
 import { Avatar, cx } from '@school-intel/ui';
-import { family, SCHOOL, useDb } from '@school-intel/api';
+import { family, useDb } from '@school-intel/api';
 import { useFamily } from './family-context';
+import { greeting } from './screens/ParentToday';
 
 const PARENT_TABS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/today', label: 'Today', icon: House },
-  { to: '/learning', label: 'Learning', icon: BookOpen },
+  { to: '/progress', label: 'Progress', icon: ChartNoAxesColumn },
   { to: '/ask', label: 'Ask', icon: MessageSquareText },
   { to: '/requests', label: 'Requests', icon: Inbox },
   { to: '/more', label: 'More', icon: LayoutGrid },
@@ -15,47 +16,45 @@ const PARENT_TABS: { to: string; label: string; icon: LucideIcon }[] = [
 
 const STUDENT_TABS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/today', label: 'Today', icon: House },
-  { to: '/tasks', label: 'Tasks', icon: ClipboardList },
-  { to: '/learning', label: 'Learning', icon: BookOpen },
-  { to: '/help', label: 'Help', icon: LifeBuoy },
+  { to: '/learn', label: 'Learn', icon: Library },
+  { to: '/ask', label: 'Ask', icon: MessageCircleQuestion },
+  { to: '/tests', label: 'Tests', icon: PenLine },
+  { to: '/me', label: 'Me', icon: UserRound },
 ];
 
 export function Shell() {
-  const { actor, isParent, name } = useFamily();
+  const { actor, isParent, name, firstName } = useFamily();
   useDb();
   const unread = family.notificationsFor(actor).filter((n) => !n.read).length;
   const { pathname } = useLocation();
   const tabs = isParent ? PARENT_TABS : STUDENT_TABS;
+  // Full-screen flows (test player) hide the tab bar so students are not pulled away mid-test.
+  const focus = /^\/tests\/play\//.test(pathname);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [pathname]);
 
   return (
-    <div className="app">
+    <div className="app" data-focus={focus || undefined}>
       <a className="skip-link" href="#main">Skip to content</a>
       <header className="topbar">
-        <Link to="/today" className="wordmark" aria-label="School Intelligence home">
-          <span className="wordmark-mark" aria-hidden>DEVX</span>
-          <span className="wordmark-text">
-            <span>School Intelligence</span>
-            <small>{SCHOOL.name}</small>
+        <Link to={isParent ? '/more' : '/me'} className="who" aria-label="Your account">
+          <Avatar initials={name.split(' ').map((p) => p[0]).join('')} />
+          <span style={{ minWidth: 0 }}>
+            <small>{greeting()}</small>
+            <strong>{firstName}</strong>
           </span>
         </Link>
-        <div className="row">
-          <Link to="/notifications" className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}>
-            <Bell size={20} aria-hidden />
-            {unread > 0 && <span className="badge-dot" aria-hidden />}
-          </Link>
-          <Link to={isParent ? '/more' : '/settings'} className="icon-btn" aria-label="Account and settings">
-            <Avatar initials={name.split(' ').map((p) => p[0]).join('')} />
-          </Link>
-        </div>
+        <Link to="/notifications" className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}>
+          <Bell size={20} aria-hidden />
+          {unread > 0 && <span className="badge-dot" aria-hidden />}
+        </Link>
       </header>
       <main id="main" className="content" key={pathname}>
         <Outlet />
       </main>
-      <nav className="tabbar" aria-label="Primary">
+      <nav className="tabbar" aria-label="Primary" hidden={focus}>
         {tabs.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} className={({ isActive }) => cx('tab', isActive && 'is-active')}>
             <span className="tab-icon" aria-hidden>

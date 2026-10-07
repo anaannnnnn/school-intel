@@ -1,8 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
+  Award,
   Bell,
   BookOpen,
+  BookOpenCheck,
+  CalendarClock,
+  ChevronRight,
+  FileQuestion,
+  Library,
+  MessagesSquare,
+  PenLine,
+  Table2,
   CalendarCheck,
   ChartColumn,
   ClipboardList,
@@ -25,7 +34,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Avatar, Switch, cx, formatDate, formatTime } from '@school-intel/ui';
-import { family, resetDemo, SCHOOL, setSession, staff, useDb } from '@school-intel/api';
+import { DEMO_DATE, family, resetDemo, SCHOOL, setSession, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { setAnnotations, useAnnotations } from './ui';
 
@@ -49,16 +58,29 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: 'Care',
+    label: 'Teaching',
+    items: [
+      { to: '/lessons', area: 'lessons', label: 'Lessons & registers', icon: CalendarClock, count: (a) => teach.teachingDay(a).filter((l) => l.mine && l.register?.status === 'open' && l.state !== 'later').length, alert: true },
+      { to: '/materials', area: 'materials', label: 'Study materials', icon: Library },
+      { to: '/questions', area: 'questions', label: 'Question bank', icon: FileQuestion, count: (a) => teach.questionBank(a).filter((q) => q.status === 'draft' && q.subject.teacherId === a.id).length },
+      { to: '/assessments', area: 'assessments', label: 'Quizzes & tests', icon: BookOpenCheck },
+      { to: '/marking', area: 'marking', label: 'Marking', icon: PenLine, count: (a) => teach.markingQueue(a).filter((m) => m.status === 'to-confirm').length },
+      { to: '/doubts', area: 'doubts', label: 'Student questions', icon: MessagesSquare, count: (a) => teach.doubtsInbox(a).list.filter((d) => d.status === 'escalated').length, alert: true },
+      { to: '/gradebook', area: 'gradebook', label: 'Gradebook', icon: Table2 },
+    ],
+  },
+  {
+    label: 'Care & records',
     items: [
       { to: '/support', area: 'support', label: 'Student support', icon: HeartHandshake, count: (a) => staff.supportCases(a).filter((c) => !['closed', 'dismissed'].includes(c.status)).length },
       { to: '/safeguarding', area: 'safeguarding', label: 'Safeguarding', icon: ShieldAlert, count: (a) => staff.concerns(a).filter((c) => c.status === 'received').length, alert: true },
-      { to: '/behaviour', area: 'behaviour', label: 'Behaviour', icon: Tags },
+      { to: '/discipline', area: 'discipline', label: 'Merits & discipline', icon: Award },
+      { to: '/behaviour', area: 'behaviour', label: 'Incidents', icon: Tags },
       { to: '/attendance', area: 'attendance', label: 'Attendance', icon: CalendarCheck, count: (a) => staff.attendance(a).pending },
     ],
   },
   {
-    label: 'Learning',
+    label: 'Planning',
     items: [
       { to: '/homework', area: 'homework', label: 'Homework', icon: NotebookPen },
       { to: '/passport', area: 'passport', label: 'Learning passport', icon: GraduationCap },
@@ -107,11 +129,14 @@ export function Layout({ actor }: { actor: Actor }) {
       <a className="skip-link" href="#main">Skip to content</a>
       <aside className="sidebar" aria-label="Workspace navigation">
         <Link to="/overview" className="side-brand">
-          <strong>DEVX</strong>
-          <span>School Intelligence</span>
+          <span className="side-logo" aria-hidden>DX</span>
+          <span>
+            <strong>DEVX</strong>
+            <small>School Intelligence · {SCHOOL.shortName}</small>
+          </span>
         </Link>
-        <div className="side-school">{SCHOOL.shortName}</div>
-        <nav>
+        <StudentSearch actor={actor} onGo={(id) => navigate(`/students/${id}`)} />
+        <nav className="stack" style={{ gap: 18 }}>
           {GROUPS.map((g) => {
             const items = g.items.filter((i) => staff.canAccessArea(actor, i.area));
             if (!items.length) return null;
@@ -122,7 +147,7 @@ export function Layout({ actor }: { actor: Actor }) {
                   const n = count ? count(actor) : 0;
                   return (
                     <NavLink key={to} to={to} className={({ isActive }) => cx('side-link', isActive && 'is-active')}>
-                      <Icon size={17} aria-hidden />
+                      <Icon size={18} aria-hidden />
                       {label}
                       {n > 0 && <span className="side-count" data-tone={alert ? 'alert' : undefined} aria-label={`${n} need attention`}>{n}</span>}
                     </NavLink>
@@ -138,6 +163,9 @@ export function Layout({ actor }: { actor: Actor }) {
             <div style={{ fontWeight: 600 }}>{me.name}</div>
             <small style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.title}</small>
           </div>
+          <button type="button" className="icon-btn plain" style={{ width: 32, height: 32 }} aria-label="Sign out" onClick={() => setSession('staff', null)}>
+            <LogOut size={16} aria-hidden />
+          </button>
         </div>
       </aside>
       <div className="drawer-scrim" onClick={() => setDrawer(false)} aria-hidden />
@@ -149,10 +177,10 @@ export function Layout({ actor }: { actor: Actor }) {
           </button>
           <nav className="crumbs" aria-label="Breadcrumb">
             <span>{SCHOOL.name}</span>
-            <span className="sep" aria-hidden>/</span>
+            <ChevronRight size={14} className="sep" aria-hidden />
             <Link to={`/${section}`}><strong>{LABELS[section] ?? 'Staff workspace'}</strong></Link>
           </nav>
-          <StudentSearch actor={actor} onGo={(id) => navigate(`/students/${id}`)} />
+          <span className="top-date">{formatDate(`${DEMO_DATE}T12:00:00+04:00`, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
           <div className="top-actions">
             <div style={{ position: 'relative' }}>
               <button type="button" className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open === 'bell'} onClick={() => { setOpen(open === 'bell' ? null : 'bell'); if (unread) family.markNotificationsRead(actor); }}>
@@ -177,7 +205,7 @@ export function Layout({ actor }: { actor: Actor }) {
               )}
             </div>
             <div style={{ position: 'relative' }}>
-              <button type="button" className="icon-btn" aria-label="Account menu" aria-expanded={open === 'user'} onClick={() => setOpen(open === 'user' ? null : 'user')}>
+              <button type="button" className="avatar-btn" aria-label="Account menu" aria-expanded={open === 'user'} onClick={() => setOpen(open === 'user' ? null : 'user')}>
                 <Avatar initials={me.initials} />
               </button>
               {open === 'user' && (
@@ -237,14 +265,15 @@ function StudentSearch({ actor, onGo }: { actor: Actor; onGo: (id: string) => vo
   };
 
   return (
-    <div className="search" role="search">
+    <div className="side-search" role="search">
       <Search size={16} aria-hidden />
+      <span className="kbd" aria-hidden>⌘K</span>
       <label htmlFor="global-search" className="sr-only">Search students</label>
       <input
         ref={ref}
         id="global-search"
         className="input"
-        placeholder="Search students you can access…"
+        placeholder="Search students…"
         value={q}
         autoComplete="off"
         onChange={(e) => { setQ(e.target.value); setActive(0); }}
