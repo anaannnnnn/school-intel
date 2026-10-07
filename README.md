@@ -11,12 +11,26 @@ An interactive prototype of both surfaces is implemented and runs as static file
 
 Both apps use `services/api`, an in-browser demo API with fictional seed data. It enforces the PRD's permission rules and workflow states and writes an audit log. It is **not** a production backend. There are no real SIS/LMS connectors, no AI provider and no authentication service.
 
+### Learning, assessment and records
+
+| Area | Students and parents (mobile app) | Staff (CRM) |
+| --- | --- | --- |
+| Study materials | Subjects, topics, notes, worksheets and video summaries; revision cards and a simpler reading level on request | Materials library and editor; AI drafts of revision cards and simplified versions, published only after review |
+| AI study helper | Year 7 and above: step-by-step hints grounded in the class notes, with sources; one tap sends the conversation to the teacher | Student questions inbox, common themes per topic, teacher replies |
+| Quizzes, tests, past papers | Instant feedback on quizzes; timed tests (the study helper pauses until submission); school-authored past papers as timed practice | Question bank with AI-drafted questions awaiting approval; paper builder from a topic blueprint; item analysis and topic insight |
+| Marking | Formative "check my draft" feedback before submitting written work; marks only after release | Marking queue: AI suggests marks per rubric criterion with the quoted evidence and a confidence level; the teacher confirms or changes every mark, then releases |
+| Exam preparation | Exam countdowns, readiness per topic, a study plan that puts the weakest topics first | Gradebook with topic mastery heatmap |
+| Attendance | Lesson-by-lesson marks, term calendar, attendance rate | Lesson registers (present, late, absent, excused); families of absent students are notified on submit |
+| Discipline | Merits and behaviour notes | Merits and demerits with family notification; class totals only, no individual rankings |
+
+The demo AI (`services/api/src/ai.ts`) is a deterministic, rules-based stand-in for the school's approved model: keyword-grounded hints, rubric keyword matching with evidence sentences, template question generation and blueprint paper building. It never calls the network. The guardrails are the product rules: no generative study tools below Year 7, hints rather than answers, teacher confirmation before any mark is released, and every AI draft labelled and reviewed.
+
 ## Run it
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173  (entry page → family app or staff workspace)
-npm test           # PRD acceptance scenarios against the demo API
+npm test           # PRD acceptance scenarios and learning rules against the demo API
 npm run build      # typecheck + static build in dist/
 npm run preview    # serve the build at http://localhost:4173
 ```
@@ -28,12 +42,15 @@ Both apps are served from one origin, so they share the demo data store in your 
 | Surface | How |
 | --- | --- |
 | Parent | "I'm a parent or guardian", invitation code `482106` (Fatima Ahmed, children Sara 7A and Adam 4B) |
-| Student | "I'm a student" (Sara Ahmed, Year 7A) |
+| Student | "I'm a student" (Sara Ahmed, Year 7A): try the open quizzes, the timed science test, a past paper, the study helper and the written task |
 | Staff | Pick a staff member, then any six-digit MFA code |
 
 | Staff member | Role | Try |
 | --- | --- | --- |
-| Nadia Farooq | Teacher, 7A | Teacher Copilot review → approve and publish; homework threshold override |
+| Nadia Farooq | Maths teacher, 7A tutor | Lessons & registers; question bank (approve AI drafts); build a quiz; gradebook; award merits; Teacher Copilot |
+| Priya Menon | Science teacher | Confirm AI-suggested marks for today's particles test, then release results; answer escalated student questions |
+| James Carter | English teacher | Marking queue for three persuasive paragraphs (evidence highlighted per rubric criterion) |
+| Huda Al Mansoori | Arabic teacher | Bilingual vocabulary materials and quiz |
 | Aisha Rahman | Pastoral lead, safeguarding lead | Support case SC-1042; restricted concern SG-026 |
 | Daniel Reed | PE teacher, pastoral | Assigned case SC-1043 |
 | Layla Haddad | Office, attendance officer | Family requests inbox; absence explanations; guardian revocation |
@@ -62,7 +79,7 @@ Existing SIS/LMS records remain authoritative. AI-generated teacher content stay
 
 ## Later phases
 
-Homework balancing, behaviour and confidential reporting, learning passports, exam resources and submissions, attendance follow-up, activities and transport.
+Homework balancing, behaviour and confidential reporting, learning passports, exam resources and submissions, attendance follow-up, activities and transport. The prototype now also covers study materials, the AI study helper, quizzes, tests and past papers, AI-assisted marking, lesson registers, the gradebook and merits (see the table above).
 
 ## Implementation structure
 
@@ -76,11 +93,16 @@ packages/contracts/   Shared data contracts (PRD §16 record contract)
 docs/                 Requirements, design handoff and delivery plan
 ```
 
-Stack: React 19, TypeScript, Vite, React Router (hash routing so the build works on any static host), lucide icons, self-hosted Inter and Manrope fonts.
+Stack: React 19, TypeScript, Vite, React Router (hash routing so the build works on any static host), lucide icons, self-hosted IBM Plex Sans/Mono and Nunito fonts.
 
 ## Design
 
-The UI follows the Figma project's foundations: semantic colour tokens (`packages/ui/src/tokens.css`), Manrope headings with Inter body text, 8/16/24 spacing, 12 px cards, a 232 px deep-green staff sidebar and a 390 px mobile layout. On top of the static frames it adds:
+The two surfaces use kits from the [UI Kit Collection](https://www.figma.com/file/KGGDuwKLk60dTA9F0HQ9aB) Figma file:
+
+- **Staff workspace: Ledger** (clinical calm). Teal `#0f7c7a` accent, IBM Plex Sans with Plex Mono for figures, a 268 px white sidebar with a pill search and mono section labels, Card/Stat with icon tiles and mini bars, underline tabs, list rows with 44 px icon tiles, 12 px cards. Tokens live at the top of `apps/staff-web/src/staff.css`.
+- **Mobile app: Pebble** (soft and friendly). Lavender `#6d5df6` accent, Nunito, pill buttons, 28 px cards, an accent hero card, a pill segmented control and a bottom tab bar with a 56 × 32 pill indicator. Tokens live at the top of `apps/family-pwa/src/family.css`.
+
+Both themes re-map the semantic tokens in `packages/ui/src/tokens.css`, so the shared components (`packages/ui`) adopt each kit. On top of the kits the apps add:
 
 - status chips, freshness and source indicators
 - a bottom tab bar and child switcher for the mobile app

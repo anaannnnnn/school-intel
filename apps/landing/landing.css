@@ -1,7 +1,32 @@
-.landing { max-width: 960px; margin: 0 auto; padding: 64px 20px; display: flex; flex-direction: column; gap: 32px; }
-.landing-head h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.08; margin-block: 12px; }
-.landing-head .eyebrow { color: var(--color-brand); font-size: var(--text-sm); }
-.landing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-.landing-card { display: flex; flex-direction: column; gap: 12px; padding: 28px; }
-.landing-card h2 { font-size: var(--text-xl); }
-.landing-link { margin-block-start: auto; font-weight: 600; color: var(--color-brand); }
+/* Entry page: a neutral frame introducing the two kit-themed surfaces. */
+body { background: #f5f8f9; color: #0f2530; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+.landing { max-width: 1040px; margin: 0 auto; padding: 56px 20px 64px; display: flex; flex-direction: column; gap: 32px; }
+.landing-mark { display: inline-flex; align-items: center; gap: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #58707c; }
+.landing-mark span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: #0f7c7a; color: #fff; letter-spacing: 0.04em; }
+.landing-head h1 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: clamp(32px, 5.4vw, 54px); line-height: 1.06; letter-spacing: -0.02em; margin-block: 18px 14px; max-width: 18ch; }
+.lede { max-width: 68ch; color: #58707c; font-size: 16px; line-height: 1.6; }
+.landing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.landing-card { display: flex; flex-direction: column; gap: 14px; padding: 28px; text-decoration: none; transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms; }
+.landing-card:hover { transform: translateY(-2px); }
+.landing-card h2 { font-size: 28px; line-height: 1.15; }
+.landing-card ul { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 6px; line-height: 1.5; }
+.landing-kit { align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.landing-link { margin-block-start: auto; font-weight: 700; }
+.pebble { font-family: 'Nunito Variable', 'Nunito', sans-serif; background: #6d5df6; color: #fff; border-radius: 28px; box-shadow: 0 24px 48px -20px rgba(109, 93, 246, 0.7); }
+.pebble h2 { font-family: inherit; font-weight: 800; color: #fff; }
+.pebble ul { color: rgba(255, 255, 255, 0.9); }
+.pebble .landing-kit { background: rgba(255, 255, 255, 0.18); color: #fff; }
+.ledger { background: #fff; color: #0f2530; border: 1px solid #d5e0e5; border-radius: 12px; }
+.ledger:hover { box-shadow: 0 12px 32px -8px rgba(15, 37, 48, 0.12); }
+.ledger h2 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; }
+.ledger ul { color: #58707c; }
+.ledger .landing-kit { background: rgba(15, 124, 122, 0.12); color: #0a5c5a; font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+.ledger .landing-link { color: #0f7c7a; }
+.landing-try { padding: 24px 28px; border: 1px solid #d5e0e5; border-radius: 12px; background: #fff; display: flex; flex-direction: column; gap: 12px; }
+.landing-try h2 { font-size: 18px; font-weight: 600; }
+.landing-try dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.landing-try dt { color: #58707c; }
+.landing-try dd { margin: 0; }
+.landing-try p { color: #58707c; }
+.landing-try code { font-family: 'IBM Plex Mono', monospace; background: #eef3f5; padding: 1px 6px; border-radius: 4px; }
+@media (max-width: 520px) { .landing-try dl { grid-template-columns: 1fr; } .landing-try dd { margin-block-end: 6px; } }
