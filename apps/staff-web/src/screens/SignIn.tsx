@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle, KeyRound, ShieldCheck } from 'lucide-react';
-import { Avatar, Button, Callout, TextField } from '@school-intel/ui';
-import { SCHOOL, setSession, staff } from '@school-intel/api';
+import { Avatar, Button, Callout, LoginIdPanel, TextField } from '@school-intel/ui';
+import { auth, SCHOOL, setSession, staff } from '@school-intel/api';
 
 const ROLE_HINT: Record<string, string> = {
   'st-nadia': 'Maths: lessons, registers, question bank and Copilot',
@@ -23,7 +23,8 @@ const POINTS = [
 ];
 
 export function SignIn() {
-  const people = staff.staffDirectory();
+  const accountIds = new Set(auth.demoAccounts('staff').map((a) => a.id));
+  const people = staff.staffDirectory().filter((p) => !accountIds.has(p.id));
   const [who, setWho] = useState('st-nadia');
   const [step, setStep] = useState<'pick' | 'mfa'>('pick');
   const [code, setCode] = useState('');
@@ -75,6 +76,14 @@ export function SignIn() {
             <div className="row wrap">
               <Button icon={KeyRound} onClick={() => setStep('mfa')}>Continue with school SSO</Button>
               <a className="btn btn-secondary" href="../family-pwa/index.html">Open the family app instead</a>
+            </div>
+            <div className="stack-sm" style={{ maxWidth: 520, marginBlockStart: 12 }}>
+              <p className="eyebrow">Grades 9 to 13 · CBSE, ICSE/ISC, IGCSE, O Level, AS and A Level</p>
+              <LoginIdPanel
+                accounts={auth.demoAccounts('staff')}
+                passcode={auth.DEMO_PASSCODE}
+                onSubmit={(id, pass) => setSession('staff', auth.signInWithLoginId(id, pass, 'staff'))}
+              />
             </div>
           </>
         ) : (

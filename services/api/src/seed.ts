@@ -3,6 +3,7 @@
 // Do not replace with real student records.
 
 import type {
+  Account,
   Activity,
   AbsenceExplanation,
   Assessment,
@@ -45,6 +46,7 @@ import type {
   SupportCase,
 } from '@school-intel/contracts';
 import * as L from './seed-learning';
+import { createCurriculumSeed } from './seed-curriculum';
 import { markObjective, suggestRubricMarks } from './ai';
 
 export const SCHOOL = {
@@ -105,6 +107,8 @@ export interface Db {
   behaviourPoints: BehaviourPoint[];
   /** Completed study-plan task IDs per student. */
   planDone: Record<string, string[]>;
+  /** Demo login IDs (schema v6). */
+  accounts: Account[];
   counters: Record<string, number>;
   demo: { lmsOutage: boolean; staleBus: boolean; failPrimaryDelivery: boolean };
 }
@@ -137,6 +141,7 @@ const student = (id: string, name: string, classId: string, sisId: string): Stud
 };
 
 export function createSeed(): Db {
+  const cur = createCurriculumSeed();
   const staff: StaffMember[] = [
     { id: 'st-nadia', name: 'Nadia Farooq', title: 'Mathematics teacher · Year 7 tutor', initials: 'NF', roles: ['teacher'], classIds: ['7A'], email: 'nadia.farooq@horizon.example' },
     { id: 'st-aisha', name: 'Aisha Rahman', title: 'Head of pastoral care · Designated safeguarding lead', initials: 'AR', roles: ['pastoral', 'safeguarding'], classIds: [], email: 'aisha.rahman@horizon.example' },
@@ -487,8 +492,8 @@ export function createSeed(): Db {
   }));
 
   return {
-    version: 5,
-    staff, students, guardians, relationships, classes, feed, drafts, cases, requests, circulars, assignments,
+    version: 6,
+    staff: [...staff, ...cur.staff], students: [...students, ...cur.students], guardians: [...guardians, ...cur.guardians], relationships: [...relationships, ...cur.relationships], classes: [...classes, ...cur.classes], feed, drafts, cases, requests, circulars, assignments,
     submissions: [], passports, concerns, registers, explanations, incidents, homework, activities, routes,
     connectors, quarantine, notifications, audit,
     preferences: {
@@ -497,9 +502,9 @@ export function createSeed(): Db {
     consents: {
       'TRIP-7-MUSEUM:stu-sara': { key: 'TRIP-7-MUSEUM', studentId: 'stu-sara', label: 'Museum visit · 15 Oct', given: false },
     },
-    subjects: L.subjects,
-    topics: L.topics,
-    materials: L.materials,
+    subjects: [...L.subjects, ...cur.subjects],
+    topics: [...L.topics, ...cur.topics],
+    materials: [...L.materials, ...cur.materials],
     questions: L.questions,
     pastPapers: L.pastPapers,
     assessments: L.assessments,
@@ -508,7 +513,8 @@ export function createSeed(): Db {
     writtenSubmissions,
     doubts: L.doubts,
     examEvents: L.examEvents,
-    periods: L.periods,
+    periods: [...L.periods, ...cur.periods],
+    accounts: cur.accounts,
     lessonRegisters: L.seededRegisters(),
     attendanceHistory: L.seededAttendanceHistory(),
     behaviourPoints: L.behaviourPoints,

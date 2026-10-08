@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { ArrowRight, BookOpen, Check, ClipboardCheck, GraduationCap, MessageCircleQuestion, ShieldCheck, Users } from 'lucide-react';
-import { Avatar, Button, Callout, Card, TextField, errorText } from '@school-intel/ui';
-import { family, SCHOOL, setSession } from '@school-intel/api';
+import { Avatar, Button, Callout, Card, LoginIdPanel, TextField, errorText } from '@school-intel/ui';
+import { auth, family, SCHOOL, setSession } from '@school-intel/api';
 import '../student-c2.css';
 
-type Step = 'choose' | 'guardian' | 'student';
+type Step = 'choose' | 'guardian' | 'student' | 'loginid';
 
 export function SignIn() {
   const [step, setStep] = useState<Step>('choose');
@@ -68,10 +68,34 @@ export function SignIn() {
               </span>
               <ArrowRight size={18} className="flip-rtl" aria-hidden />
             </button>
+            <button type="button" className="card role-card" onClick={() => setStep('loginid')}>
+              <span className="card-icon" aria-hidden><ShieldCheck size={18} /></span>
+              <span className="grow">
+                <strong style={{ display: 'block' }}>Sign in with a login ID</strong>
+                <span className="small muted">Students and parents of Classes 9–12 and Years 10–13</span>
+              </span>
+              <ArrowRight size={18} className="flip-rtl" aria-hidden />
+            </button>
             <p className="small muted" style={{ textAlign: 'center', marginBlockStart: 8 }}>
               Demonstration with fictional school data. Staff use the <a href="../staff-web/index.html">staff workspace</a>.
             </p>
           </>
+        )}
+
+        {step === 'loginid' && (
+          <div className="stack">
+            <div className="stack-sm">
+              <p className="eyebrow">Login ID</p>
+              <h2 style={{ fontSize: 'var(--text-2xl)' }}>Sign in</h2>
+            </div>
+            <LoginIdPanel
+              accounts={auth.demoAccounts('family')}
+              passcode={auth.DEMO_PASSCODE}
+              busy={busy}
+              onSubmit={(id, pass) => setSession('family', auth.signInWithLoginId(id, pass, 'family'))}
+            />
+            <Button variant="ghost" onClick={() => setStep('choose')}>Back</Button>
+          </div>
         )}
 
         {step === 'guardian' && (

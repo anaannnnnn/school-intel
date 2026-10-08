@@ -59,6 +59,10 @@ Both apps are served from one origin, so they share the demo data store in your 
 
 Each role only sees the areas and records it is authorised for. Visiting a restricted area shows the "This record is restricted" state and is recorded in the audit log. "Reset demo data" in either app restores the 6 October 2026 scenario.
 
+### Grades 9 to 13: real syllabus data
+
+Besides the Year 7A scenario, the demo has classes for CBSE (Class 9-12), ICSE (9-10), ISC (11-12), Cambridge IGCSE and O Level (Year 10-11) and AS and A Level (Year 12-13). Subjects, chapters and topics are the published syllabus titles; the students, parents and teachers are invented. Use **Sign in with a login ID** (for example `stu.cbse9.01`, passcode `Demo-2026`) in either app. See [docs/curriculum-data.md](docs/curriculum-data.md) for sources, licences and gaps, and [docs/demo-accounts.md](docs/demo-accounts.md) for every login ID.
+
 ## Product and design
 
 - [Product requirements document](docs/prd.md): text extracted from the 22-page PRD, v1.0, 6 October 2026.

@@ -410,3 +410,13 @@ a.list-item, button.list-item { width: 100%; background: none; border-inline: 0;
 
 .spinner { width: 16px; height: 16px; border: 2px solid currentColor; border-inline-end-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Login ID panel */
+.login-directory { border: 1px solid var(--color-border); border-radius: 12px; padding: 10px 14px; background: var(--color-surface); }
+.login-directory summary { cursor: pointer; font-weight: 700; }
+.login-directory h3 { margin: 14px 0 4px; font-size: 12px; font-weight: 700; }
+.login-directory ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 300px; overflow: auto; }
+.login-directory button { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; width: 100%; padding: 6px 8px; border: 0; border-radius: 8px; background: transparent; color: inherit; text-align: start; cursor: pointer; font: inherit; }
+.login-directory button:hover, .login-directory button:focus-visible { background: color-mix(in srgb, var(--color-brand) 10%, transparent); outline: none; }
+.login-directory code { font-size: 12px; }
+.login-directory span { font-size: 12px; color: var(--color-muted); text-align: end; }

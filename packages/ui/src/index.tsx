@@ -380,3 +380,58 @@ export function usePalette(app: string, palettes: Palette[]): [string, (id: stri
   };
   return [value, set];
 }
+
+// ---------- Sign in with a login ID ----------
+
+export interface LoginAccount {
+  loginId: string;
+  label: string;
+  group: string;
+}
+
+/**
+ * Login ID and passcode form, with a browsable list of the demo accounts grouped
+ * by class. `onSubmit` should throw an Error to show a message.
+ */
+export function LoginIdPanel({ accounts, passcode, onSubmit, busy }: { accounts: LoginAccount[]; passcode: string; onSubmit: (loginId: string, passcode: string) => void; busy?: boolean }) {
+  const [loginId, setLoginId] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const groups = new Map<string, LoginAccount[]>();
+  for (const a of accounts) groups.set(a.group, [...(groups.get(a.group) ?? []), a]);
+  return (
+    <form
+      className="stack"
+      onSubmit={(e) => {
+        e.preventDefault();
+        try {
+          onSubmit(loginId, code);
+        } catch (err) {
+          setError(errorText(err));
+        }
+      }}
+    >
+      <TextField label="Login ID" autoComplete="username" autoCapitalize="none" spellCheck={false} value={loginId} onChange={(e) => { setLoginId(e.target.value); setError(''); }} hint="For example stu.cbse9.01" />
+      <TextField label="Passcode" type="password" autoComplete="current-password" value={code} onChange={(e) => { setCode(e.target.value); setError(''); }} error={error} hint={`Demo passcode for every account: ${passcode}`} />
+      <Button type="submit" block busy={busy} disabled={!loginId.trim() || !code}>Sign in</Button>
+      <details className="login-directory">
+        <summary>Browse demo accounts ({accounts.length})</summary>
+        {[...groups.entries()].map(([group, list]) => (
+          <section key={group} aria-label={group}>
+            <h3 className="small muted">{group}</h3>
+            <ul>
+              {list.map((a) => (
+                <li key={a.loginId}>
+                  <button type="button" onClick={() => { setLoginId(a.loginId); setCode(passcode); setError(''); }}>
+                    <code>{a.loginId}</code>
+                    <span>{a.label.split(' · ')[0]}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </details>
+    </form>
+  );
+}
