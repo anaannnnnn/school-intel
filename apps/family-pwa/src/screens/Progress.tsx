@@ -1,6 +1,6 @@
 import { Award, BookOpen, CalendarCheck, CalendarClock, CalendarDays, GraduationCap } from 'lucide-react';
 import { Card, Chip, EmptyState, formatDate, type Tone } from '@school-intel/ui';
-import { learn, useDb } from '@school-intel/api';
+import { className, learn, useDb } from '@school-intel/api';
 import { ChildSwitcher, PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
 import { PRow, SectionTitle, SubjectTile, daysLabel, scoreTone } from '../kit';
@@ -48,7 +48,7 @@ export function Progress() {
       {isParent && <ChildSwitcher />}
 
       <section className="hero-card" aria-label="Summary">
-        <span className="eyebrow">{child.firstName} · Year {child.classId} · Term 1</span>
+        <span className="eyebrow">{child.firstName} · {className(child.classId)} · Term 1</span>
         <h2>{headline}</h2>
         <div className="hero-stats">
           <div><strong>{average !== undefined ? `${average}%` : '–'}</strong><small>Average score</small></div>

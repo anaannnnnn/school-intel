@@ -3,7 +3,7 @@
    Nunito, pill buttons, 28 px cards, pill tab-bar indicator. Designed at 390 px
    and centred as a phone-width column on larger screens. */
 
-:root {
+:root[data-palette='pebble'] {
   --color-ink: #25214a;
   --color-muted: #6e6a93;
   --color-brand: #6d5df6;
@@ -472,3 +472,4 @@ a.card:hover, button.card:hover { box-shadow: var(--shadow); }
 :root[data-palette='night'] .btn-danger { --btn-fg: #1a0505; }
 
 .card.card-flush { padding: 0; }
+

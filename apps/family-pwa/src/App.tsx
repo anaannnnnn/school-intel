@@ -1,10 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@school-intel/ui';
 import { family, useDb, useSession } from '@school-intel/api';
 import { FamilyProvider } from './family-context';
 import { Shell } from './Shell';
-import { SignIn } from './screens/SignIn';
 import { ParentToday } from './screens/ParentToday';
 import { StudentToday } from './screens/StudentToday';
 import { Children } from './screens/Children';
@@ -44,6 +43,10 @@ export function App() {
   useDb();
   const prefs = actor ? family.preferences(actor) : undefined;
 
+  useLayoutEffect(() => {
+    if (actor) document.documentElement.dataset.role = actor.kind === 'guardian' ? 'parent' : 'student';
+  }, [actor]);
+
   useEffect(() => {
     const ar = prefs?.language === 'ar';
     document.documentElement.lang = ar ? 'ar' : 'en';
@@ -53,11 +56,7 @@ export function App() {
   return (
     <ToastProvider>
       <HashRouter>
-        {!actor ? (
-          <Routes>
-            <Route path="*" element={<SignIn />} />
-          </Routes>
-        ) : (
+        {!actor ? null : (
           <FamilyProvider actor={actor}>
             <Routes>
               <Route element={<Shell />}>

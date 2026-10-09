@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { Card, Chip, EmptyState, Segmented, formatDate } from '@school-intel/ui';
-import { DEMO_DATE, getDb, learn, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, getDb, learn, useDb } from '@school-intel/api';
 import { ChildSwitcher, PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
 import { PRESENCE, hueStyle } from '../kit';
@@ -60,7 +60,7 @@ export function Timetable() {
 
   return (
     <>
-      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · Year ${child.classId}` : `Year ${child.classId}`} title="Timetable" />
+      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · ${className(child.classId)}` : `${className(child.classId)}`} title="Timetable" />
       {isParent && <ChildSwitcher />}
 
       {!hasAny ? (

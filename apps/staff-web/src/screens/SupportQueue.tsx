@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, HeartHandshake, Inbox, Info, UserPlus } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Dialog, EmptyState, SelectField, TextArea, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { staff, useDb } from '@school-intel/api';
+import { className, staff, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { DataTable, PageFoot, PageHead, Stat } from '../ui';
 import { CASE } from '../statuses';
@@ -50,7 +50,7 @@ export function SupportQueue({ actor }: { actor: Actor }) {
         <div className="grid-main">
           {priority && (
             <Card>
-              <CardHeader icon={HeartHandshake} tone="warning" title="Today’s priority" sub={`${priority.student.name} · Year ${priority.student.classId}`} action={<Chip tone={CASE[priority.status].tone}>{CASE[priority.status].label}</Chip>} />
+              <CardHeader icon={HeartHandshake} tone="warning" title="Today’s priority" sub={`${priority.student.name} · ${className(priority.student.classId)}`} action={<Chip tone={CASE[priority.status].tone}>{CASE[priority.status].label}</Chip>} />
               <ul className="list">
                 {priority.signals.map((s) => <li key={s} className="list-item">{s}</li>)}
               </ul>

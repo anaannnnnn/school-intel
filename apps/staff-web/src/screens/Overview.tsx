@@ -22,7 +22,7 @@ import {
   CircleCheck,
 } from 'lucide-react';
 import { Card, CardHeader, Chip, EmptyState, formatDate, formatTime, type Tone } from '@school-intel/ui';
-import { DEMO_DATE, getDb, staff, teach, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, getDb, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { DataTable, ListRow, PageFoot, PageHead, Stat, SubjectDot } from '../ui';
 import '../teaching-b.css';
@@ -65,7 +65,7 @@ export function Overview({ actor }: { actor: Actor }) {
   const rows: Row[] = [
     ...pendingDrafts.map((x) => ({
       record: name(x.studentId),
-      group: `Year ${x.classId}`,
+      group: `${className(x.classId)}`,
       status: x.state === 'missing-evidence' ? 'Missing evidence' : `${x.subject} draft v${x.versions.length}`,
       tone: (x.state === 'missing-evidence' ? 'warning' : 'info') as Tone,
       next: x.state === 'missing-evidence' ? 'Add teacher note' : 'Review draft',
@@ -88,7 +88,7 @@ export function Overview({ actor }: { actor: Actor }) {
       to: `/requests/${r.id}`,
     })),
     ...o.concerns.map((c) => ({ record: c.id, group: formatTime(c.receivedAt), status: 'Restricted concern', tone: 'restricted' as Tone, next: c.status === 'received' ? 'Acknowledge' : 'Follow up', to: `/safeguarding/${c.id}` })),
-    ...o.registers.map((r) => ({ record: `Year ${r.classId} register`, group: r.period, status: `${r.recorded} / ${r.total} recorded`, tone: 'warning' as Tone, next: 'Complete register', to: '/attendance' })),
+    ...o.registers.map((r) => ({ record: `${className(r.classId)} register`, group: r.period, status: `${r.recorded} / ${r.total} recorded`, tone: 'warning' as Tone, next: 'Complete register', to: '/attendance' })),
     ...o.quarantine.map((q) => ({ record: `Source ${q.sourceId}`, group: `${q.rows} rows`, status: 'Quarantined', tone: 'danger' as Tone, next: 'Review mapping', to: '/integrations' })),
   ];
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FileLock2, History, MessageCircleHeart, TriangleAlert, UserCheck } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Dialog, TextArea, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { getDb, staff, useDb } from '@school-intel/api';
+import { className, getDb, staff, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { PageFoot, PageHead, Restricted, Stat } from '../ui';
 
@@ -58,7 +58,7 @@ export function SafeguardingCase({ actor }: { actor: Actor }) {
         <div className="stack">
           <Card>
             <CardHeader icon={FileLock2} title="Confidential report" sub={`${c.category} · ${c.whenWhere || 'time not given'}`} />
-            <div className="row" style={{ marginBlockEnd: 12 }}><Avatar initials={c.student.initials} /><span><strong>{c.student.name}</strong> · Year {c.student.classId}</span></div>
+            <div className="row" style={{ marginBlockEnd: 12 }}><Avatar initials={c.student.initials} /><span><strong>{c.student.name}</strong> · {className(c.student.classId)}</span></div>
             <p className="draft-text">{c.description}</p>
             <dl className="kv" style={{ marginBlockStart: 14 }}>
               <dt>Contact preference</dt><dd>{c.contactPreference}</dd>

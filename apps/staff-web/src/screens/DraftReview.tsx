@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CircleCheck, Eye, FileSearch, History, ListChecks, PenLine, RefreshCw, TriangleAlert } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Checkbox, Chip, Dialog, EmptyState, TextArea, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { staff, useDb } from '@school-intel/api';
+import { className, staff, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { PageFoot, PageHead, Restricted, Stat } from '../ui';
 import { DRAFT } from '../statuses';
@@ -80,7 +80,7 @@ function Review({ actor, draft: d, toast }: { actor: Actor; draft: ReturnType<ty
       </div>
 
       {missing && latest === undefined && (
-        <Callout tone="warning" icon={TriangleAlert} title={`${d.student.name} · Year ${d.classId}`}>
+        <Callout tone="warning" icon={TriangleAlert} title={`${d.student.name} · ${className(d.classId)}`}>
           No published assessment exists in this reporting period. Add an authorised teacher note or write the comment manually. No unsupported draft has been generated.
         </Callout>
       )}

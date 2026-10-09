@@ -1,55 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f2530" />
-    <link rel="icon" href="./family-pwa/icon.svg" type="image/svg+xml" />
-    <title>School Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f0e4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1916" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="Horizon Learning School: lessons, learning, records and school life for students, parents and teachers in one place." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Horizon" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <title>Horizon Learning School</title>
+    <style>
+      /* Paints before any script runs, so the first frame is never white. */
+      html { background: #f6f0e4; }
+      @media (prefers-color-scheme: dark) { html { background: #0e1916; } }
+      body { margin: 0; }
+    </style>
   </head>
   <body>
-    <main class="landing">
-      <header class="landing-head">
-        <p class="landing-mark"><span>DX</span> DEVX · School Intelligence</p>
-        <h1>Learning, records and care in one connected school platform.</h1>
-        <p class="lede">Horizon Learning School pilot. Study materials, an AI study helper, quizzes, tests and past papers, AI-assisted marking that teachers confirm, lesson registers, merits and discipline, and the school's support workflows. All people and numbers are fictional.</p>
-      </header>
-      <div class="landing-grid">
-        <a class="landing-card pebble" href="./family-pwa/index.html">
-          <span class="landing-kit">Pebble kit · mobile web app</span>
-          <h2>Students &amp; parents</h2>
-          <ul>
-            <li>Today: timetable, tasks and the next exam</li>
-            <li>Learn: subjects, notes, revision cards</li>
-            <li>Ask: hints from class notes (Year 7+)</li>
-            <li>Tests: quizzes, timed tests, past papers, exam plan</li>
-            <li>Progress: grades, attendance, merits</li>
-          </ul>
-          <span class="landing-link">Open the app →</span>
-        </a>
-        <a class="landing-card ledger" href="./staff-web/index.html">
-          <span class="landing-kit">Ledger kit · school CRM</span>
-          <h2>Staff workspace</h2>
-          <ul>
-            <li>Lessons and registers with family absence alerts</li>
-            <li>Materials, question bank and paper builder</li>
-            <li>Marking queue: AI suggests, the teacher decides</li>
-            <li>Student questions, gradebook, merits and discipline</li>
-            <li>Support, safeguarding, requests, integrations, audit</li>
-          </ul>
-          <span class="landing-link">Open the workspace →</span>
-        </a>
-      </div>
-      <section class="landing-try">
-        <h2>Try it</h2>
-        <dl>
-          <dt>Student</dt><dd>Sara Ahmed (Year 7A), school sign-in</dd>
-          <dt>Parent</dt><dd>Fatima Ahmed, code <code>482106</code></dd>
-          <dt>Teachers</dt><dd>Nadia Farooq (Maths), Priya Menon (Science), James Carter (English): any six-digit MFA code</dd>
-        </dl>
-        <p>Both apps share one demo data store in this browser: a test Sara submits appears in Priya's marking queue, and released results appear back in the app.</p>
-      </section>
-    </main>
-    <script type="module" src="./landing/main.ts"></script>
+    <div id="root"></div>
+    <noscript>This app needs JavaScript to run.</noscript>
+    <script type="module" src="./web/main.tsx"></script>
   </body>
 </html>

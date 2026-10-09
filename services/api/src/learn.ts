@@ -6,7 +6,8 @@
 import type { Actor, Assessment, Attempt, AttemptItem, Doubt, Presence, Question, Student } from '@school-intel/contracts';
 import { AccessDenied, audit, requireFamilyAccess, ValidationError } from './access';
 import * as ai from './ai';
-import { DEMO_DATE, type Db } from './seed';
+import { DEMO_DATE } from './constants';
+import type { Db } from './db-types';
 import { getDb, mutate, nextId, nowIso } from './store';
 
 /** UAE MoE guidance: no generative AI study tools below Grade 7 (age 13). */

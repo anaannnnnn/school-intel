@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CalendarCheck, ClipboardList, FileText, GraduationCap, HeartHandshake, Inbox, Lock, MessageCircleQuestion, ShieldCheck, Trophy, Users } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Dialog, TextArea, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { staff, teach, useDb } from '@school-intel/api';
+import { className, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { Heat, PageFoot, PageHead, Restricted, SubjectDot } from '../ui';
 import '../teaching-b.css';
@@ -29,7 +29,7 @@ export function StudentProfile({ actor }: { actor: Actor }) {
     <>
       <PageHead
         title={<span className="row" style={{ gap: 14 }}><Avatar initials={p.initials} size="lg" />{p.name}</span>}
-        sub={`Year ${p.classId} · ${p.sisId} · Horizon Learning School`}
+        sub={`${className(p.classId)} · ${p.sisId} · Horizon Learning School`}
         spec="Student record · role-filtered"
         actions={<Link to="/students" className="btn btn-secondary">All students</Link>}
       />
@@ -41,7 +41,7 @@ export function StudentProfile({ actor }: { actor: Actor }) {
           <Card>
             <CardHeader icon={ClipboardList} title="Assignments" sub="From the LMS · source of record" />
             <ul className="list">
-              {p.assignments.length === 0 && <li className="list-item muted small">No current assignments in the demo data.</li>}
+              {p.assignments.length === 0 && <li className="list-item muted small">No current assignments.</li>}
               {p.assignments.map((a) => {
                 const sub = p.submissions.filter((s) => s.assignmentId === a.id).sort((x, y) => y.version - x.version)[0];
                 return (
@@ -82,7 +82,7 @@ export function StudentProfile({ actor }: { actor: Actor }) {
         <div className="stack">
           <Card>
             <CardHeader icon={Users} title="Guardians" sub="Verified against school-held records" />
-            {p.guardians.length === 0 && <p className="small muted">Guardian records for this learner are not included in the demo.</p>}
+            {p.guardians.length === 0 && <p className="small muted">Guardian records for this learner are not available here.</p>}
             <ul className="list">
               {p.guardians.map((g) => (
                 <li key={g.guardianId} className="list-item" style={{ alignItems: 'flex-start' }}>

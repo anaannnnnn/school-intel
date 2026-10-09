@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Award, Bus, CalendarCheck, CircleCheck, ClipboardList, FileText, GraduationCap, MessageSquareText, Sparkles, Timer, Trophy, TriangleAlert, Users } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Checkbox, Chip, Dialog, Freshness, formatDate, formatTime, formatWeekday, useToast } from '@school-intel/ui';
-import { DEMO_DATE, family, learn, nowIso, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, family, learn, nowIso, useDb } from '@school-intel/api';
 import type { FeedItem } from '@school-intel/contracts';
 import { ChildSwitcher } from '../Shell';
 import { useFamily } from '../family-context';
@@ -66,7 +66,7 @@ export function ParentToday() {
       <ChildSwitcher />
 
       <section className="hero-card" aria-label={`${child.firstName}’s day`}>
-        <span className="eyebrow">{child.firstName}’s day · Year {child.classId}</span>
+        <span className="eyebrow">{child.firstName}’s day · {className(child.classId)}</span>
         <div className="hero-day">
           <span className="hero-num">{minutes}<small>min</small></span>
           <p>
@@ -212,7 +212,7 @@ export function ParentToday() {
         </Link>
       </div>
 
-      <p className="small muted" style={{ textAlign: 'center' }}>School records remain the official source · Fictional demonstration data</p>
+      <p className="small muted" style={{ textAlign: 'center' }}>School records remain the official source</p>
 
       <Dialog
         open={consentOpen}

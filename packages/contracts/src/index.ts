@@ -68,6 +68,16 @@ export interface SchoolClass {
   tutorId: string;
 }
 
+/** A demo login: a login ID that maps to one person. */
+export interface Account {
+  loginId: string;
+  kind: 'student' | 'guardian' | 'staff';
+  id: string;
+  label: string;
+  /** Heading under which the account is listed, for example "Class 9 · CBSE". */
+  group: string;
+}
+
 export type Actor =
   | { kind: 'guardian'; id: string }
   | { kind: 'student'; id: string }

@@ -55,7 +55,7 @@ export function HeroBars({ values, highlight }: { values: number[]; highlight?: 
   const max = Math.max(...values, 1);
   return (
     <span className="hero-bars" aria-hidden>
-      {values.map((v, i) => <i key={i} data-on={i === (highlight ?? values.length - 1)} style={{ height: `${Math.max(10, (v / max) * 100)}%` }} />)}
+      {values.map((v, i) => <i key={i} data-on={i === (highlight ?? values.length - 1)} style={{ height: `${Math.max(10, (v / max) * 100)}%`, ['--i' as string]: i }} />)}
     </span>
   );
 }

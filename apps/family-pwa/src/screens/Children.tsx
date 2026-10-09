@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { Avatar, Chip } from '@school-intel/ui';
-import { family, SCHOOL, useDb } from '@school-intel/api';
+import { className, family, SCHOOL, useDb } from '@school-intel/api';
 import { PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
 import { NoChildren } from './NoChildren';
@@ -32,7 +32,7 @@ export function Children() {
               <Avatar initials={c.initials} size="lg" />
               <div className="grow">
                 <strong style={{ fontSize: 'var(--text-lg)' }}>{c.name}</strong>
-                <div className="small muted">Year {c.classId} · {SCHOOL.shortName}</div>
+                <div className="small muted">{className(c.classId)} · {SCHOOL.shortName}</div>
               </div>
               <ArrowRight size={18} className="flip-rtl" aria-hidden />
             </div>

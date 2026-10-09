@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing, CalendarDays, ClipboardCheck, Clock, Percent, UserX } from 'lucide-react';
 import { Avatar, Callout, Card, CardHeader, Chip, EmptyState, formatTime, formatWeekday, type Tone } from '@school-intel/ui';
-import { DEMO_DATE, getDb, learn, staff, teach, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, getDb, learn, staff, teach, useDb } from '@school-intel/api';
 import type { Actor, Presence } from '@school-intel/contracts';
 import { PageFoot, PageHead, Stat, SubjectDot } from '../ui';
 import '../teaching-a.css';
@@ -83,7 +83,7 @@ export function Lessons({ actor }: { actor: Actor }) {
           foot={`${withReg.filter((l) => l.register!.status === 'open' && l.state !== 'later').length} overdue · ${withReg.filter((l) => l.state === 'later').length} later today`}
         />
         <Stat icon={UserX} value={`${lateCount} / ${absentCount}`} label="Late / absent today" tone={absentCount ? 'danger' : lateCount ? 'warning' : undefined} foot="Students, from submitted registers" />
-        <Stat icon={Percent} value={classRate === undefined ? '—' : `${classRate}%`} label={`Year ${classId} attendance`} tone={classRate !== undefined && classRate < 95 ? 'warning' : 'success'} spark={spark} foot="Term to date · school target 95%" />
+        <Stat icon={Percent} value={classRate === undefined ? '—' : `${classRate}%`} label={`${className(classId)} attendance`} tone={classRate !== undefined && classRate < 95 ? 'warning' : 'success'} spark={spark} foot="Term to date · school target 95%" />
       </div>
 
       <div className="grid-main">
@@ -110,7 +110,7 @@ export function Lessons({ actor }: { actor: Actor }) {
                         {!l.mine && !isOfficer && <span className="chip chip-neutral" data-dot="false">Tutor view</span>}
                       </span>
                       <span className="ta-meta">
-                        <span>Year {l.period.classId}</span>
+                        <span>{className(l.period.classId)}</span>
                         <span>Room {l.period.room}</span>
                         {!l.mine && <span>{d.staff.find((s) => s.id === l.subject.teacherId)?.name}</span>}
                       </span>
@@ -174,14 +174,14 @@ export function Lessons({ actor }: { actor: Actor }) {
       <Card>
         <CardHeader
           icon={CalendarDays}
-          title={`Weekly timetable · Year ${classId}`}
+          title={`Weekly timetable · ${className(classId)}`}
           sub={isOfficer ? 'All subjects' : visible.length === own.size ? 'Your lessons' : 'Your lessons, plus your tutor group’s other subjects (shaded)'}
         />
         {slots.length === 0 ? (
           <p className="muted small">No timetabled lessons for your subjects.</p>
         ) : (
           <div className="ta-week-wrap">
-            <div className="ta-week" role="table" aria-label={`Weekly timetable for Year ${classId}`}>
+            <div className="ta-week" role="table" aria-label={`Weekly timetable for ${className(classId)}`}>
               <div role="row" style={{ display: 'contents' }}>
                 <span className="ta-week-head" role="columnheader">Time</span>
                 {DAYS.map((day, i) => (

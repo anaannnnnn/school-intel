@@ -2,7 +2,7 @@
 // before reading or changing a record; denied attempts are audited.
 
 import type { Actor, StaffMember, StaffRole, Student } from '@school-intel/contracts';
-import type { Db } from './seed';
+import type { Db } from './db-types';
 import { getDb, mutate, nextId, nowIso } from './store';
 
 export class AccessDenied extends Error {

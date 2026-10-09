@@ -75,7 +75,7 @@ export function Stat({ value, label, foot, tone, to, icon: Icon, spark, delta }:
 }
 
 export function PageFoot({ updated }: { updated?: string }) {
-  return <p className="page-foot">Source records remain authoritative · Demo content is fictional{updated ? ` · Updated ${updated}` : ''}</p>;
+  return <p className="page-foot">Source records remain authoritative{updated ? ` · Updated ${updated}` : ''}</p>;
 }
 
 export function Restricted({ message }: { message?: string }) {
@@ -120,7 +120,7 @@ export function DataTable<T>({ rows, columns, onRow, empty, caption }: { rows: T
               tabIndex={onRow ? 0 : undefined}
             >
               {columns.map((c) => (
-                <td key={c.key} style={{ textAlign: c.align === 'end' ? 'end' : undefined }}>{c.render(r)}</td>
+                <td key={c.key} data-label={c.label} style={{ textAlign: c.align === 'end' ? 'end' : undefined }}>{c.render(r)}</td>
               ))}
             </tr>
           ))}

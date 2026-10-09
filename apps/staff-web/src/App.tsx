@@ -1,11 +1,10 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, type ReactNode } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@school-intel/ui';
 import { staff, useDb, useSession } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { Layout } from './Layout';
 import { Restricted } from './ui';
-import { SignIn } from './screens/SignIn';
 import { Overview } from './screens/Overview';
 import { Copilot } from './screens/Copilot';
 import { DraftReview } from './screens/DraftReview';
@@ -55,14 +54,14 @@ export function App() {
   useDb();
   const valid = actor?.kind === 'staff';
 
+  useLayoutEffect(() => {
+    document.documentElement.dataset.role = 'teacher';
+  }, []);
+
   return (
     <ToastProvider>
       <HashRouter>
-        {!valid ? (
-          <Routes>
-            <Route path="*" element={<SignIn />} />
-          </Routes>
-        ) : (
+        {!valid ? null : (
           <Routes>
             <Route element={<Layout actor={actor} />}>
               <Route index element={<Navigate to="/overview" replace />} />

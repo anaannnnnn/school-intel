@@ -7,7 +7,8 @@ import type { Actor, Assessment, BehaviourPoint, Material, Presence, Question, S
 import { AccessDenied, audit, canStaffSeeStudent, linkedStudentIds, requireRole, staffOf, ValidationError } from './access';
 import * as ai from './ai';
 import { attemptScore, attendanceSummary } from './learn';
-import { DEMO_DATE, type Db } from './seed';
+import { DEMO_DATE } from './constants';
+import type { Db } from './db-types';
 import { getDb, mutate, nextId, nowIso } from './store';
 
 const studentName = (d: Db, id: string) => d.students.find((s) => s.id === id)?.name ?? id;

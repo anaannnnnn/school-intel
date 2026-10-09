@@ -1,11 +1,13 @@
-// Demo persistence layer. In production this is the relational database behind
-// the authenticated API (PRD §15). Here the store lives in the browser so the
-// prototype runs as static files; both apps share it because they are served
-// from the same origin, and other tabs are kept in sync through storage events.
+// Persistence layer. The school database (a SQLite file, see database.ts) is read once at start-up and
+// installed here. Changes made in the apps are kept in this browser's local storage until a server
+// backend takes over; a new release of the database file replaces them (see `dataVersion`).
+// Both apps are served from one origin, so they share this store, and other tabs stay in sync through
+// storage events.
 
-import { createSeed, DEMO_DATE, type Db } from './seed';
+import { DEMO_DATE } from './constants';
+import type { Db } from './db-types';
 
-const KEY = 'school-intel:demo-db';
+const KEY = 'school-intel:data';
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -18,27 +20,52 @@ const storage: Storage | undefined = (() => {
   }
 })();
 
-function load(): Db {
-  const seed = createSeed();
-  try {
-    const raw = storage?.getItem(KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Db;
-      if (parsed.version === seed.version) return parsed;
-    }
-  } catch {
-    /* fall through to a fresh seed */
-  }
-  return seed;
+/** A login. The password hash stays in memory only; it is never written to local storage. */
+export interface AccountRow {
+  loginId: string;
+  kind: 'student' | 'guardian' | 'staff';
+  id: string;
+  label: string;
+  group: string;
+  passwordHash: string;
 }
 
-let db: Db = load();
+let db: Db | undefined;
+let baseline = '';
+let version: string | undefined;
+let accountRows: AccountRow[] = [];
+
+function readSaved(): Db | null {
+  try {
+    const raw = storage?.getItem(KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Db;
+    return version && parsed.dataVersion === version ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Install the school database document and its logins. Local changes from the same release are kept. */
+export function installDatabase(doc: Db, accounts: AccountRow[] = []) {
+  baseline = JSON.stringify(doc);
+  version = doc.dataVersion;
+  accountRows = accounts;
+  db = readSaved() ?? (JSON.parse(baseline) as Db);
+  emit();
+}
+
+export const hasDatabase = () => !!db;
+
+export function accountList(): AccountRow[] {
+  return accountRows;
+}
 
 function persist() {
   try {
     storage?.setItem(KEY, JSON.stringify(db));
   } catch {
-    /* private mode or quota: the demo keeps working in memory */
+    /* private mode or quota: the app keeps working in memory */
   }
 }
 
@@ -48,13 +75,14 @@ function emit() {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
-    if (e.key !== KEY) return;
-    db = load();
+    if (e.key !== KEY || !baseline) return;
+    db = readSaved() ?? (JSON.parse(baseline) as Db);
     emit();
   });
 }
 
 export function getDb(): Db {
+  if (!db) throw new Error('The school database has not loaded yet.');
   return db;
 }
 
@@ -65,7 +93,7 @@ export function subscribe(listener: Listener): () => void {
 
 /** Apply a mutation atomically, then persist and notify subscribers. */
 export function mutate<T>(fn: (draft: Db) => T): T {
-  const next = structuredClone(db);
+  const next = structuredClone(getDb());
   const result = fn(next);
   db = next;
   persist();
@@ -73,20 +101,21 @@ export function mutate<T>(fn: (draft: Db) => T): T {
   return result;
 }
 
-export function resetDemo() {
-  db = createSeed();
+/** Discard local changes and go back to the school database as released. */
+export function resetData() {
+  db = JSON.parse(baseline) as Db;
   persist();
   emit();
 }
 
-/** The demo opens at 10:45 Dubai time on 6 October 2026 (mid-way through
- *  lesson 4), then runs at real speed so timers and timestamps move. */
+/** The school opens at 10:45 Dubai time on the day the database is dated, then runs at real speed so
+ *  timers and timestamps move. */
 export const DEMO_START = '10:45';
 const startedAt = Date.now();
 const demoBase = Date.parse(`${DEMO_DATE}T${DEMO_START}:00+04:00`);
 const dayEnd = Date.parse(`${DEMO_DATE}T23:59:59+04:00`);
 
-/** Current demo time as an ISO string with the Dubai offset. */
+/** Current school time as an ISO string with the Dubai offset. */
 export function nowIso(): string {
   const d = new Date(Math.min(dayEnd, demoBase + (Date.now() - startedAt)) + 4 * 3600_000);
   const hh = String(d.getUTCHours()).padStart(2, '0');

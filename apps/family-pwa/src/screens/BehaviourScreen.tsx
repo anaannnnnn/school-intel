@@ -1,6 +1,6 @@
 import { Award, Heart, MessageCircleWarning } from 'lucide-react';
 import { Callout, Card, EmptyState, formatDate } from '@school-intel/ui';
-import { learn, useDb } from '@school-intel/api';
+import { className, learn, useDb } from '@school-intel/api';
 import { ChildSwitcher, PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
 import { PRow, SectionTitle } from '../kit';
@@ -17,7 +17,7 @@ export function BehaviourScreen() {
 
   return (
     <>
-      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · Year ${child.classId}` : 'Your record'} title="Merits & behaviour" />
+      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · ${className(child.classId)}` : 'Your record'} title="Merits & behaviour" />
       {isParent && <ChildSwitcher />}
 
       <section className="hero-card" aria-label="Merits this term">

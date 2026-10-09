@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Bot, MessagesSquare, Send, UserRound } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, TextArea, errorText, formatDateTime, formatTime, useToast } from '@school-intel/ui';
-import { AI_DISCLOSURE, getDb, teach, useDb } from '@school-intel/api';
+import { AI_DISCLOSURE, className, getDb, teach, useDb } from '@school-intel/api';
 import type { Actor, DoubtMessage } from '@school-intel/contracts';
 import { AiTag, PageFoot, PageHead, Restricted, SubjectDot } from '../ui';
 import { DoubtStatus } from './Doubts';
@@ -114,7 +114,7 @@ export function DoubtThread({ actor }: { actor: Actor }) {
             <CardHeader icon={UserRound} title="Student" />
             <div className="tb-who" style={{ marginBlockEnd: 14 }}>
               <Avatar initials={x.student.initials} />
-              <span><strong>{x.student.name}</strong><small>Year {x.student.classId} · {x.student.sisId}</small></span>
+              <span><strong>{x.student.name}</strong><small>{className(x.student.classId)} · {x.student.sisId}</small></span>
             </div>
             <dl className="kv">
               <dt>Class</dt><dd>{x.student.classId}</dd>

@@ -1,0 +1,75 @@
+/*
+ * Student and parent workspace: a phone-first app. The column stays phone-width on larger screens,
+ * the tab bar floats above the thumb zone, and every tap target is at least 44 px.
+ */
+
+body { background: var(--color-backdrop); }
+@media (min-width: 560px) {
+  body {
+    background:
+      radial-gradient(520px 520px at 8% 12%, color-mix(in srgb, var(--color-sun) 40%, transparent), transparent 70%),
+      radial-gradient(460px 460px at 92% 88%, color-mix(in srgb, var(--color-sea) 26%, transparent), transparent 70%),
+      var(--color-backdrop);
+    background-attachment: fixed;
+  }
+}
+
+.app {
+  max-width: var(--app-max);
+  background: var(--color-canvas);
+  padding-block-end: calc(var(--tabbar-height) + env(safe-area-inset-bottom) + 16px);
+  --toast-offset: calc(var(--tabbar-height) + 20px);
+}
+@media (min-width: 560px) {
+  .app { box-shadow: 0 0 0 1px var(--color-border), 0 50px 100px -40px rgb(20 35 31 / 0.45); }
+}
+
+/* ---------- Top bar ---------- */
+.topbar { padding: calc(env(safe-area-inset-top) + 14px) 20px 10px; background: color-mix(in srgb, var(--color-canvas) 86%, transparent); }
+.who .avatar { width: 44px; height: 44px; font-size: 15px; border-radius: 16px 16px 8px 8px; background: var(--color-soft); color: var(--color-brand-ink); }
+.who small { font-size: 12.5px; font-weight: 600; }
+.who strong { font-family: var(--font-heading); font-size: 19px; font-weight: 600; }
+.icon-btn { width: 48px; height: 48px; border-radius: 16px; border-width: 1px; border-color: var(--color-border); box-shadow: var(--shadow-sm); }
+.icon-btn:active { transform: scale(0.94); }
+.badge-dot { background: var(--color-brand); inset-block-start: 11px; inset-inline-end: 12px; }
+
+/* ---------- Floating tab bar ---------- */
+.tabbar {
+  inset-inline: 12px;
+  inset-block-end: calc(10px + env(safe-area-inset-bottom));
+  width: auto;
+  max-width: calc(var(--app-max) - 24px);
+  margin-inline: auto;
+  padding: 8px;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: var(--shadow-lg);
+}
+.tab { max-width: none; min-height: 60px; justify-content: center; gap: 3px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.01em; border-radius: 22px; -webkit-tap-highlight-color: transparent; }
+.tab-icon { width: 54px; height: 32px; border-radius: 18px 18px 9px 9px; transition: background 0.25s var(--ease-out), color 0.25s, transform 0.25s var(--ease-out); }
+.tab:active .tab-icon { transform: scale(0.92); }
+.tab.is-active { color: var(--color-brand-ink); font-weight: 800; }
+.tab.is-active .tab-icon { background: var(--color-brand); color: var(--color-on-brand); transform: translateY(-2px); box-shadow: 0 8px 14px -8px var(--color-brand); }
+
+/* ---------- Page rhythm ---------- */
+.content { padding: 4px 20px 28px; gap: 18px; }
+.page-title, .greeting h1 { font-family: var(--font-heading); font-size: 36px; font-weight: 600; line-height: 1.04; letter-spacing: -0.025em; font-variation-settings: 'opsz' 144, 'SOFT' 50; }
+.page-header { gap: 10px; }
+.back { min-height: 44px; font-weight: 700; color: var(--color-brand-ink); }
+.back:active { background: var(--color-subtle); }
+.section-title { font-size: 21px; margin-block: 10px -2px; }
+.section-title a, .section-title button { min-height: 44px; display: inline-flex; align-items: center; font-size: 15px; }
+.context-pill { border: 1px solid var(--color-border); box-shadow: none; font-weight: 600; }
+.child-switcher { border-radius: 22px; background: var(--color-subtle); }
+.child-switcher button { border-radius: 18px; }
+.child-switcher button[aria-selected='true'] { box-shadow: 0 8px 16px -10px var(--color-brand); }
+
+/* Lesson rows: let the name wrap and keep the status chip whole. */
+.lesson-text { min-width: 0; }
+.lesson-text strong { overflow-wrap: anywhere; }
+.lesson-main { min-width: 0; flex: 1; }
+.chip { white-space: nowrap; flex: none; }

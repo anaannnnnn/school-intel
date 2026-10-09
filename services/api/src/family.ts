@@ -11,7 +11,7 @@ import type {
   Submission,
 } from '@school-intel/contracts';
 import { audit, AccessDenied, linkedStudentIds, requireFamilyAccess, ValidationError } from './access';
-import { DEMO_DATE } from './seed';
+import { DEMO_DATE } from './constants';
 import { getDb, mutate, nextId, nowIso } from './store';
 
 // ---------- Identity ----------

@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import {
   Award,
   Bell,
   BookOpen,
   BookOpenCheck,
   CalendarClock,
+  ChevronLeft,
   ChevronRight,
+  LayoutGrid,
   FileQuestion,
   Library,
   MessagesSquare,
@@ -14,7 +16,6 @@ import {
   Table2,
   CalendarCheck,
   ChartColumn,
-  ClipboardList,
   Database,
   FileClock,
   GraduationCap,
@@ -22,7 +23,6 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
-  Menu,
   NotebookPen,
   RotateCcw,
   Search,
@@ -33,9 +33,9 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Switch, cx, formatDate, formatTime, usePalette } from '@school-intel/ui';
+import { Avatar, BottomSheet, Switch, cx, formatDate, formatTime, useGlider, useMotion, usePalette, useRouteDirection } from '@school-intel/ui';
 import { STAFF_PALETTES } from './palettes';
-import { DEMO_DATE, family, resetDemo, SCHOOL, setSession, staff, teach, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, family, resetData, setSession, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { setAnnotations, useAnnotations } from './ui';
 
@@ -101,209 +101,212 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
 
 const LABELS: Record<string, string> = Object.fromEntries(GROUPS.flatMap((g) => g.items.map((i) => [i.to.slice(1), i.label])));
 
+/** The four areas shown in the bottom bar. People see the first four they are allowed to open. */
+const TAB_PRIORITY = ['overview', 'lessons', 'marking', 'requests', 'support', 'attendance', 'students', 'leadership', 'integrations', 'audit'];
+const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
+const TAB_LABEL: Record<string, string> = { overview: 'Home', lessons: 'Lessons', marking: 'Marking', requests: 'Requests', support: 'Support', attendance: 'Attendance', students: 'Students', leadership: 'Leaders', integrations: 'Systems', audit: 'Audit' };
+
+type Sheet = 'more' | 'account' | 'notes' | 'search' | null;
+
 export function Layout({ actor }: { actor: Actor }) {
   const db = useDb();
   const me = staff.me(actor);
   const { pathname } = useLocation();
-  const [drawer, setDrawer] = useState(false);
-  const [open, setOpen] = useState<'bell' | 'user' | null>(null);
-  const ann = useAnnotations();
   const navigate = useNavigate();
+  const [sheet, setSheet] = useState<Sheet>(null);
+  const ann = useAnnotations();
   const notes = family.notificationsFor(actor);
   const unread = notes.filter((n) => !n.read).length;
-  const section = pathname.split('/')[1];
+  const [, section = '', sub] = pathname.split('/');
   const [palette, setPalette] = usePalette('staff', STAFF_PALETTES);
+  const deep = !!sub;
+
+  const tabs = useMemo(
+    () => TAB_PRIORITY.filter((a) => staff.canAccessArea(actor, a)).slice(0, 4).map((a) => ALL_ITEMS.find((i) => i.to === `/${a}`)!).filter(Boolean),
+    [actor],
+  );
+  const inTabs = tabs.some((t) => t.to === `/${section}`);
+
+  const dir = useRouteDirection(pathname, useNavigationType());
+  const nav = useRef<HTMLElement>(null);
+  useGlider(nav, '.hz-tab.is-active .hz-tab-icon', `${section}|${tabs.length}`);
+  useMotion(pathname);
 
   useEffect(() => {
-    setDrawer(false);
-    setOpen(null);
+    setSheet(null);
     window.scrollTo({ top: 0 });
   }, [pathname]);
 
-  useEffect(() => {
-    const close = (e: KeyboardEvent) => e.key === 'Escape' && (setOpen(null), setDrawer(false));
-    window.addEventListener('keydown', close);
-    return () => window.removeEventListener('keydown', close);
-  }, []);
+  const close = () => setSheet(null);
+  const badge = (it: NavItem) => (it.count ? it.count(actor) : 0);
+  const moreBadge = ALL_ITEMS.filter((i) => !tabs.includes(i) && staff.canAccessArea(actor, i.area)).reduce((n, i) => n + badge(i), 0);
 
   return (
-    <div className="layout" data-drawer={drawer ? 'open' : undefined}>
+    <div className="hz-shell">
       <a className="skip-link" href="#main">Skip to content</a>
-      <aside className="sidebar" aria-label="Workspace navigation">
-        <Link to="/overview" className="side-brand">
-          <span className="side-logo" aria-hidden>DX</span>
-          <span>
-            <strong>DEVX</strong>
-            <small>School Intelligence · {SCHOOL.shortName}</small>
-          </span>
-        </Link>
-        <StudentSearch actor={actor} onGo={(id) => navigate(`/students/${id}`)} />
-        <nav className="stack" style={{ gap: 18 }}>
-          {GROUPS.map((g) => {
-            const items = g.items.filter((i) => staff.canAccessArea(actor, i.area));
-            if (!items.length) return null;
-            return (
-              <div className="side-group" key={g.label}>
-                <div className="side-label">{g.label}</div>
-                {items.map(({ to, label, icon: Icon, count, alert }) => {
-                  const n = count ? count(actor) : 0;
-                  return (
-                    <NavLink key={to} to={to} className={({ isActive }) => cx('side-link', isActive && 'is-active')}>
-                      <Icon size={18} aria-hidden />
-                      {label}
-                      {n > 0 && <span className="side-count" data-tone={alert ? 'alert' : undefined} aria-label={`${n} need attention`}>{n}</span>}
-                    </NavLink>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </nav>
-        <div className="side-foot">
-          <Avatar initials={me.initials} />
-          <div className="grow" style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600 }}>{me.name}</div>
-            <small style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.title}</small>
-          </div>
-          <button type="button" className="icon-btn plain" style={{ width: 32, height: 32 }} aria-label="Sign out" onClick={() => setSession('staff', null)}>
-            <LogOut size={16} aria-hidden />
+      <header className="hz-top">
+        {deep ? (
+          <button type="button" className="hz-round" aria-label="Back" onClick={() => navigate(-1)}>
+            <ChevronLeft size={22} aria-hidden />
           </button>
+        ) : (
+          <button type="button" className="hz-avatar" aria-label="Your account" onClick={() => setSheet('account')}>
+            <Avatar initials={me.initials} />
+          </button>
+        )}
+        <div className="hz-title">
+          <small>{deep ? formatDate(`${DEMO_DATE}T12:00:00+04:00`, { weekday: 'short', day: 'numeric', month: 'short' }) : 'Horizon Learning'}</small>
+          <strong>{deep ? (LABELS[section] ?? 'Home') : me.name.split(' ')[0]}</strong>
         </div>
-      </aside>
-      <div className="drawer-scrim" onClick={() => setDrawer(false)} aria-hidden />
+        <button type="button" className="hz-round" aria-label="Search students" onClick={() => setSheet('search')}>
+          <Search size={20} aria-hidden />
+        </button>
+        <button type="button" className="hz-round" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} onClick={() => { setSheet('notes'); if (unread) family.markNotificationsRead(actor); }}>
+          <Bell size={20} aria-hidden />
+          {unread > 0 && <span className="hz-dot" aria-hidden />}
+        </button>
+      </header>
 
-      <div className="main">
-        <header className="topbar">
-          <button type="button" className="icon-btn menu-btn" aria-label="Open navigation" onClick={() => setDrawer(true)}>
-            <Menu size={20} aria-hidden />
-          </button>
-          <nav className="crumbs" aria-label="Breadcrumb">
-            <span>{SCHOOL.name}</span>
-            <ChevronRight size={14} className="sep" aria-hidden />
-            <Link to={`/${section}`}><strong>{LABELS[section] ?? 'Staff workspace'}</strong></Link>
-          </nav>
-          <span className="top-date">{formatDate(`${DEMO_DATE}T12:00:00+04:00`, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          <div className="top-actions">
-            <div style={{ position: 'relative' }}>
-              <button type="button" className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open === 'bell'} onClick={() => { setOpen(open === 'bell' ? null : 'bell'); if (unread) family.markNotificationsRead(actor); }}>
-                <Bell size={20} aria-hidden />
-                {unread > 0 && <span className="badge-dot" aria-hidden />}
-              </button>
-              {open === 'bell' && (
-                <div className="popover" role="dialog" aria-label="Notifications">
-                  <div className="popover-head">Notifications</div>
-                  {notes.length === 0 && <p className="small muted" style={{ padding: 10 }}>Nothing new.</p>}
-                  {notes.slice(0, 8).map((n) => (
-                    <Link key={n.id} to={n.link ?? '/overview'} className="popover-item">
-                      <span className="card-icon" style={{ width: 30, height: 30 }} aria-hidden><Bell size={14} /></span>
-                      <span>
-                        <span style={{ fontWeight: 600 }}>{n.title}</span>
-                        <small>{n.body}</small>
-                        <small>{formatDate(n.at)}, {formatTime(n.at)}</small>
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div style={{ position: 'relative' }}>
-              <button type="button" className="avatar-btn" aria-label="Account menu" aria-expanded={open === 'user'} onClick={() => setOpen(open === 'user' ? null : 'user')}>
-                <Avatar initials={me.initials} />
-              </button>
-              {open === 'user' && (
-                <div className="popover" role="dialog" aria-label="Account" style={{ width: 300 }}>
-                  <div className="popover-head">{me.name} · {me.roles.join(', ')}</div>
-                  <div className="popover-head" style={{ paddingBlockEnd: 4 }}>Colour theme · {STAFF_PALETTES.find((p) => p.id === palette)?.name}</div>
-                  <div className="palette-swatches" role="radiogroup" aria-label="Colour theme">
-                    {STAFF_PALETTES.map((p) => (
-                      <button key={p.id} type="button" role="radio" aria-checked={palette === p.id} aria-label={`${p.name} (${p.kit})`} title={`${p.name} · ${p.kit}`} className="palette-swatch" style={{ ['--sw-a' as string]: p.swatch[0], ['--sw-b' as string]: p.swatch[1] }} onClick={() => setPalette(p.id)} />
-                    ))}
-                  </div>
-                  <div style={{ padding: '0 10px' }}>
-                    <Switch label="Show PRD references" hint="Phase and requirement IDs on each page" checked={ann} onChange={setAnnotations} />
-                  </div>
-                  <button type="button" className="popover-item" onClick={() => setSession('staff', null)}>
-                    <Users size={16} aria-hidden /> <span>Switch staff member<small>Sign in as another demo role</small></span>
-                  </button>
-                  <button type="button" className="popover-item" onClick={() => { resetDemo(); setOpen(null); }}>
-                    <RotateCcw size={16} aria-hidden /> <span>Reset demo data<small>Restores the 6 October scenario</small></span>
-                  </button>
-                  <button type="button" className="popover-item" onClick={() => setSession('staff', null)}>
-                    <LogOut size={16} aria-hidden /> <span>Sign out</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-        {open && <div style={{ position: 'fixed', inset: 0, zIndex: 15 }} onClick={() => setOpen(null)} aria-hidden />}
-        <main id="main" className="page" key={pathname} data-db={db.version}>
+      <div className="hz-view">
+        <main id="main" className="page" key={pathname} data-dir={dir} data-db={db.version}>
           <Outlet />
         </main>
       </div>
+
+      <nav ref={nav} className="hz-tabs" aria-label="Primary">
+        <span className="glider" aria-hidden />
+        {tabs.map((t) => {
+          const n = badge(t);
+          return (
+            <NavLink key={t.to} to={t.to} className={({ isActive }) => cx('hz-tab', isActive && 'is-active')}>
+              <span className="hz-tab-icon" aria-hidden>
+                <t.icon size={21} />
+                {n > 0 && <span className="hz-count" data-tone={t.alert ? 'alert' : undefined}>{n > 9 ? '9+' : n}</span>}
+              </span>
+              <span>{TAB_LABEL[t.to.slice(1)] ?? t.label}</span>
+            </NavLink>
+          );
+        })}
+        <button type="button" className={cx('hz-tab', !inTabs && section && 'is-active')} onClick={() => setSheet('more')} aria-haspopup="dialog">
+          <span className="hz-tab-icon" aria-hidden>
+            <LayoutGrid size={21} />
+            {moreBadge > 0 && <span className="hz-count" data-tone="alert">{moreBadge > 9 ? '9+' : moreBadge}</span>}
+          </span>
+          <span>More</span>
+        </button>
+      </nav>
+
+      <BottomSheet open={sheet === 'more'} onClose={close} title="All areas" tall>
+        {GROUPS.map((g) => {
+          const items = g.items.filter((i) => staff.canAccessArea(actor, i.area));
+          if (!items.length) return null;
+          return (
+            <section className="hz-group" key={g.label} aria-label={g.label}>
+              <h3>{g.label}</h3>
+              <div className="hz-grid">
+                {items.map((it, i) => {
+                  const n = badge(it);
+                  return (
+                    <Link key={it.to} to={it.to} className="hz-tile" style={{ ['--i' as string]: i }} onClick={close}>
+                      <span className="hz-tile-icon" aria-hidden>
+                        <it.icon size={22} />
+                        {n > 0 && <span className="hz-count" data-tone={it.alert ? 'alert' : undefined}>{n > 9 ? '9+' : n}</span>}
+                      </span>
+                      <span>{it.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </BottomSheet>
+
+      <BottomSheet open={sheet === 'account'} onClose={close} title="Your account">
+        <div className="hz-me">
+          <Avatar initials={me.initials} />
+          <div>
+            <strong>{me.name}</strong>
+            <small>{me.title}</small>
+          </div>
+        </div>
+        <h3 className="hz-sub">Colour theme · {STAFF_PALETTES.find((p) => p.id === palette)?.name}</h3>
+        <div className="palette-swatches" role="radiogroup" aria-label="Colour theme">
+          {STAFF_PALETTES.map((p) => (
+            <button key={p.id} type="button" role="radio" aria-checked={palette === p.id} aria-label={`${p.name} (${p.kit})`} title={`${p.name} · ${p.kit}`} className="palette-swatch" style={{ ['--sw-a' as string]: p.swatch[0], ['--sw-b' as string]: p.swatch[1] }} onClick={() => setPalette(p.id)} />
+          ))}
+        </div>
+        <Switch label="Show PRD references" hint="Phase and requirement IDs on each page" checked={ann} onChange={setAnnotations} />
+        <div className="hz-actions">
+          <button type="button" className="hz-action" onClick={() => { resetData(); close(); }}>
+            <RotateCcw size={20} aria-hidden /> <span>Reload school data<small>Discards changes saved in this browser</small></span>
+          </button>
+          <button type="button" className="hz-action" onClick={() => setSession('staff', null)}>
+            <Users size={20} aria-hidden /> <span>Switch account<small>Sign in as someone else</small></span>
+          </button>
+          <button type="button" className="hz-action hz-danger" onClick={() => setSession('staff', null)}>
+            <LogOut size={20} aria-hidden /> <span>Sign out</span>
+          </button>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet open={sheet === 'notes'} onClose={close} title="Notifications">
+        {notes.length === 0 && <p className="muted">Nothing new.</p>}
+        <ul className="hz-notes" role="list">
+          {notes.slice(0, 12).map((n) => (
+            <li key={n.id}>
+              <Link to={n.link ?? '/overview'} onClick={close}>
+                <span className="hz-tile-icon" aria-hidden><Bell size={18} /></span>
+                <span>
+                  <strong>{n.title}</strong>
+                  <small>{n.body}</small>
+                  <small>{formatDate(n.at)}, {formatTime(n.at)}</small>
+                </span>
+                <ChevronRight size={18} aria-hidden />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </BottomSheet>
+
+      <BottomSheet open={sheet === 'search'} onClose={close} title="Find a student" tall>
+        <StudentSearch actor={actor} onGo={(id) => { close(); navigate(`/students/${id}`); }} />
+      </BottomSheet>
     </div>
   );
 }
 
 function StudentSearch({ actor, onGo }: { actor: Actor; onGo: (id: string) => void }) {
   const [q, setQ] = useState('');
-  const [active, setActive] = useState(0);
-  const ref = useRef<HTMLInputElement>(null);
   const results = useMemo(() => {
     const t = q.trim().toLowerCase();
     if (!t) return [];
-    return staff.studentDirectory(actor).filter((s) => s.name.toLowerCase().includes(t) || s.classId.toLowerCase() === t || s.sisId.toLowerCase().includes(t)).slice(0, 6);
+    return staff.studentDirectory(actor).filter((s) => s.name.toLowerCase().includes(t) || s.classId.toLowerCase() === t || s.sisId.toLowerCase().includes(t) || className(s.classId).toLowerCase().includes(t)).slice(0, 20);
   }, [q, actor]);
 
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        ref.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', k);
-    return () => window.removeEventListener('keydown', k);
-  }, []);
-
-  const go = (id: string) => {
-    setQ('');
-    ref.current?.blur();
-    onGo(id);
-  };
-
   return (
-    <div className="side-search" role="search">
-      <Search size={16} aria-hidden />
-      <span className="kbd" aria-hidden>⌘K</span>
-      <label htmlFor="global-search" className="sr-only">Search students</label>
-      <input
-        ref={ref}
-        id="global-search"
-        className="input"
-        placeholder="Search students…"
-        value={q}
-        autoComplete="off"
-        onChange={(e) => { setQ(e.target.value); setActive(0); }}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowDown') setActive((a) => Math.min(a + 1, results.length - 1));
-          if (e.key === 'ArrowUp') setActive((a) => Math.max(a - 1, 0));
-          if (e.key === 'Enter' && results[active]) go(results[active].id);
-          if (e.key === 'Escape') setQ('');
-        }}
-      />
-      {q && (
-        <div className="search-results">
-          {results.length === 0 && <p className="small muted" style={{ padding: 8 }}>No students match within your access.</p>}
-          {results.map((s, i) => (
-            <a key={s.id} href={`#/students/${s.id}`} data-active={i === active} onClick={(e) => { e.preventDefault(); go(s.id); }}>
+    <div className="hz-search" role="search">
+      <label className="hz-field">
+        <Search size={18} aria-hidden />
+        <span className="sr-only">Search students</span>
+        <input data-autofocus type="search" enterKeyHint="search" placeholder="Name, class or student number" value={q} autoComplete="off" onChange={(e) => setQ(e.target.value)} />
+      </label>
+      {!q && <p className="muted small">Search is limited to students you are allowed to see.</p>}
+      {q && results.length === 0 && <p className="muted">No students match within your access.</p>}
+      <ul role="list" className="hz-results">
+        {results.map((s) => (
+          <li key={s.id}>
+            <button type="button" onClick={() => onGo(s.id)}>
               <Avatar initials={s.initials} />
-              <span className="grow">{s.name}<span className="small muted"> · Year {s.classId}</span></span>
-              <ClipboardList size={14} className="muted" aria-hidden />
-            </a>
-          ))}
-        </div>
-      )}
+              <span>
+                <strong>{s.name}</strong>
+                <small>{className(s.classId)} · {s.sisId}</small>
+              </span>
+              <ChevronRight size={18} aria-hidden />
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

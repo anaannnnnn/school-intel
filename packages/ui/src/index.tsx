@@ -2,6 +2,7 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/manrope';
 import './tokens.css';
 import './components.css';
+import { useExit } from './motion';
 
 import {
   createContext,
@@ -23,6 +24,7 @@ export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'rest
 
 const cx = (...c: (string | false | undefined | null)[]) => c.filter(Boolean).join(' ');
 export { cx };
+export { Confetti, haptic, reducedMotion, useExit, useGlider, useMotion, useRouteDirection, type RouteDirection } from './motion';
 
 // ---------- Buttons ----------
 
@@ -379,4 +381,123 @@ export function usePalette(app: string, palettes: Palette[]): [string, (id: stri
     paletteSubs.forEach((s) => s());
   };
   return [value, set];
+}
+
+// ---------- Sign in with a login ID ----------
+
+export interface LoginAccount {
+  loginId: string;
+  label: string;
+  group: string;
+}
+
+/**
+ * Login ID and passcode form, with a browsable list of the demo accounts grouped
+ * by class. `onSubmit` should throw an Error to show a message.
+ */
+export function LoginIdPanel({ accounts, passcode, onSubmit, busy }: { accounts: LoginAccount[]; passcode: string; onSubmit: (loginId: string, passcode: string) => void; busy?: boolean }) {
+  const [loginId, setLoginId] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const groups = new Map<string, LoginAccount[]>();
+  for (const a of accounts) groups.set(a.group, [...(groups.get(a.group) ?? []), a]);
+  return (
+    <form
+      className="stack"
+      onSubmit={(e) => {
+        e.preventDefault();
+        try {
+          onSubmit(loginId, code);
+        } catch (err) {
+          setError(errorText(err));
+        }
+      }}
+    >
+      <TextField label="Login ID" autoComplete="username" autoCapitalize="none" spellCheck={false} value={loginId} onChange={(e) => { setLoginId(e.target.value); setError(''); }} hint="For example stu.cbse9.01" />
+      <TextField label="Passcode" type="password" autoComplete="current-password" value={code} onChange={(e) => { setCode(e.target.value); setError(''); }} error={error} hint={`Demo passcode for every account: ${passcode}`} />
+      <Button type="submit" block busy={busy} disabled={!loginId.trim() || !code}>Sign in</Button>
+      <details className="login-directory">
+        <summary>Browse demo accounts ({accounts.length})</summary>
+        {[...groups.entries()].map(([group, list]) => (
+          <section key={group} aria-label={group}>
+            <h3 className="small muted">{group}</h3>
+            <ul>
+              {list.map((a) => (
+                <li key={a.loginId}>
+                  <button type="button" onClick={() => { setLoginId(a.loginId); setCode(passcode); setError(''); }}>
+                    <code>{a.loginId}</code>
+                    <span>{a.label.split(' · ')[0]}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </details>
+    </form>
+  );
+}
+
+// ---------- Bottom sheet ----------
+
+/**
+ * A panel that slides up from the bottom of the screen: the mobile way to show menus, pickers and
+ * short forms. Closes with the scrim, Escape, the close button or a downward swipe on the handle.
+ */
+export function BottomSheet({ open, onClose, title, children, tall }: { open: boolean; onClose: () => void; title: string; children: ReactNode; tall?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ y: number; dy: number } | null>(null);
+  const { mounted, closing } = useExit(open);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const first = ref.current?.querySelector<HTMLElement>('[data-autofocus], input, button, a[href]');
+    window.setTimeout(() => first?.focus({ preventScroll: true }), 60);
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', esc);
+    return () => {
+      window.removeEventListener('keydown', esc);
+      document.body.style.overflow = overflow;
+      prev?.focus?.({ preventScroll: true });
+    };
+  }, [open, onClose]);
+
+  if (!mounted) return null;
+  const move = (e: React.PointerEvent) => {
+    if (!drag.current || !ref.current) return;
+    drag.current.dy = Math.max(0, e.clientY - drag.current.y);
+    ref.current.style.transform = `translateY(${drag.current.dy}px)`;
+  };
+  const end = () => {
+    if (!drag.current || !ref.current) return;
+    const dy = drag.current.dy;
+    drag.current = null;
+    ref.current.style.transition = 'transform 0.2s var(--ease-out)';
+    if (dy > 90) onClose();
+    else ref.current.style.transform = '';
+  };
+  return (
+    <div className="sheet-scrim" data-closing={closing || undefined} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div ref={ref} className="sheet" data-tall={tall || undefined} role="dialog" aria-modal="true" aria-label={title}>
+        <div
+          className="sheet-grab"
+          onPointerDown={(e) => { drag.current = { y: e.clientY, dy: 0 }; ref.current && (ref.current.style.transition = 'none'); e.currentTarget.setPointerCapture(e.pointerId); }}
+          onPointerMove={move}
+          onPointerUp={end}
+          onPointerCancel={end}
+          aria-hidden
+        >
+          <span />
+        </div>
+        <div className="sheet-head">
+          <h2>{title}</h2>
+          <button type="button" className="sheet-x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <div className="sheet-body">{children}</div>
+      </div>
+    </div>
+  );
 }
