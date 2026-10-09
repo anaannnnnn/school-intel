@@ -6,8 +6,8 @@ DevX School Intelligence: a connected school operations and student-support plat
 
 One web app for a school. The start page asks whether you are a **student, parent or teacher** (and remembers the answer), then you sign in with a login ID and passcode. After that you land in the right workspace:
 
-- **Family workspace** (`apps/family-pwa`): students and parents. Installable, works on a phone and has a side rail on desktop.
-- **Staff workspace** (`apps/staff-web`): teachers, pastoral and safeguarding staff, the school office, IT and leadership.
+- **Family workspace** (`apps/family-pwa`): students and parents. A phone-first app (installable); on a larger screen it stays a phone-width column.
+- **Staff workspace** (`apps/staff-web`): teachers, pastoral and safeguarding staff, the school office, IT and leadership. Also phone-first: a bottom bar for the four areas you use most, and a sheet for the rest.
 - **Start page and sign-in** (`apps/web`): role choice, login, and loading the right workspace.
 
 The data comes from a SQLite file, [`apps/public/data/school.db`](apps/public/data/school.db), which is read in the browser when the app starts (sql.js). Nothing needs to run on the server: any host that can serve static files works. Changes people make (marks, registers, requests) are saved in that browser until a backend is added. A new release of `school.db` replaces them.

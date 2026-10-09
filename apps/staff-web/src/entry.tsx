@@ -8,7 +8,11 @@ import '@fontsource/ibm-plex-sans/600.css';
 import '@fontsource/ibm-plex-sans/700.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
+import '@fontsource-variable/figtree';
+import '@fontsource-variable/fraunces/full.css';
 import './staff.css';
+import '../../../packages/ui/src/horizon.css';
+import './horizon.css';
 
 applyPalette('staff', STAFF_PALETTES);
 

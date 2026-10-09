@@ -55,10 +55,6 @@ export function Shell() {
         <Outlet />
       </main>
       <nav className="tabbar" aria-label="Primary" hidden={focus}>
-        <div className="rail-brand" aria-hidden>
-          <span className="rail-mark"><i /><i /><i /></span>
-          <span className="rail-name"><strong>Horizon Learning</strong><small>School Intelligence</small></span>
-        </div>
         {tabs.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} className={({ isActive }) => cx('tab', isActive && 'is-active')}>
             <span className="tab-icon" aria-hidden>

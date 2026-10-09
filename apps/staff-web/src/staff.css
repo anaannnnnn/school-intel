@@ -3,7 +3,7 @@
    IBM Plex Sans with Plex Mono for figures. White 268 px sidebar, 28/32 page
    padding, 12 px cards with hairline borders. Collapses to a drawer on tablets. */
 
-:root {
+:root[data-palette='ledger'] {
   --color-ink: #0f2530;
   --color-muted: #58707c;
   --color-brand: #0f7c7a;
@@ -317,12 +317,12 @@ a.stat:hover { border-color: var(--color-border-strong); box-shadow: var(--shado
 
 .drawer-scrim { display: none; }
 
-@media (max-width: 1180px) {
+@container app (max-width: 1180px) {
   .grid-main { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-@media (max-width: 1024px) {
+@container app (max-width: 1024px) {
   .layout { grid-template-columns: 1fr; }
   .sidebar { position: fixed; inset-block: 0; inset-inline-start: 0; z-index: 50; width: 288px; transform: translateX(-100%); transition: transform var(--dur-slow) var(--ease-out); box-shadow: var(--shadow-lg); }
   [dir='rtl'] .sidebar { transform: translateX(100%); }
@@ -334,7 +334,7 @@ a.stat:hover { border-color: var(--color-border-strong); box-shadow: var(--shado
   .page-head h1 { font-size: 32px; }
 }
 
-@media (max-width: 760px) {
+@container app (max-width: 760px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .page-head h1 { font-size: 28px; }
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }

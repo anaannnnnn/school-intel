@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, type ReactNode } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@school-intel/ui';
 import { staff, useDb, useSession } from '@school-intel/api';
@@ -53,6 +53,10 @@ export function App() {
   const actor = useSession('staff');
   useDb();
   const valid = actor?.kind === 'staff';
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.role = 'teacher';
+  }, []);
 
   return (
     <ToastProvider>

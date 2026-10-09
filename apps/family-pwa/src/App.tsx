@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@school-intel/ui';
 import { family, useDb, useSession } from '@school-intel/api';
@@ -42,6 +42,10 @@ export function App() {
   const actor = useSession('family');
   useDb();
   const prefs = actor ? family.preferences(actor) : undefined;
+
+  useLayoutEffect(() => {
+    if (actor) document.documentElement.dataset.role = actor.kind === 'guardian' ? 'parent' : 'student';
+  }, [actor]);
 
   useEffect(() => {
     const ar = prefs?.language === 'ar';

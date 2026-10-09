@@ -170,14 +170,14 @@
 .tb-pt-list li[data-kind='demerit'] > span:first-child { background: color-mix(in srgb, var(--color-warning-solid) 16%, transparent); color: color-mix(in srgb, var(--color-warning-solid) 72%, var(--color-ink)); }
 .tb-pt-list small { display: block; color: var(--color-muted); font-size: 12px; }
 
-@media (max-width: 1180px) {
+@container app (max-width: 1180px) {
   .tb-mark-layout { grid-template-columns: 1fr; }
   .tb-mark-side { position: static; }
   .tb-record { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 20px; }
   .tb-record > div:nth-child(3) { padding-inline-start: 0; border-inline-start: 0; }
 }
 
-@media (max-width: 760px) {
+@container app (max-width: 760px) {
   .tb-answer { font-size: 15px; padding: 14px; }
   .tb-msg { max-width: 100%; }
   .tb-excerpt { max-width: 26ch; }
@@ -194,6 +194,6 @@
 .stat-foot .delta { flex: none; white-space: nowrap; }
 .tb-inline-dot { margin-inline-end: 8px; vertical-align: 0; }
 .tb-dash > * { min-width: 0; }
-@media (max-width: 1180px) {
+@container app (max-width: 1180px) {
   .tb-dash > .tb-needs { order: -1; }
 }

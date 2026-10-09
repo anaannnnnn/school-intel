@@ -435,3 +435,66 @@ export function LoginIdPanel({ accounts, passcode, onSubmit, busy }: { accounts:
     </form>
   );
 }
+
+// ---------- Bottom sheet ----------
+
+/**
+ * A panel that slides up from the bottom of the screen: the mobile way to show menus, pickers and
+ * short forms. Closes with the scrim, Escape, the close button or a downward swipe on the handle.
+ */
+export function BottomSheet({ open, onClose, title, children, tall }: { open: boolean; onClose: () => void; title: string; children: ReactNode; tall?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ y: number; dy: number } | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const first = ref.current?.querySelector<HTMLElement>('[data-autofocus], input, button, a[href]');
+    window.setTimeout(() => first?.focus({ preventScroll: true }), 60);
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', esc);
+    return () => {
+      window.removeEventListener('keydown', esc);
+      document.body.style.overflow = overflow;
+      prev?.focus?.({ preventScroll: true });
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+  const move = (e: React.PointerEvent) => {
+    if (!drag.current || !ref.current) return;
+    drag.current.dy = Math.max(0, e.clientY - drag.current.y);
+    ref.current.style.transform = `translateY(${drag.current.dy}px)`;
+  };
+  const end = () => {
+    if (!drag.current || !ref.current) return;
+    const dy = drag.current.dy;
+    drag.current = null;
+    ref.current.style.transition = 'transform 0.2s var(--ease-out)';
+    if (dy > 90) onClose();
+    else ref.current.style.transform = '';
+  };
+  return (
+    <div className="sheet-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div ref={ref} className="sheet" data-tall={tall || undefined} role="dialog" aria-modal="true" aria-label={title}>
+        <div
+          className="sheet-grab"
+          onPointerDown={(e) => { drag.current = { y: e.clientY, dy: 0 }; ref.current && (ref.current.style.transition = 'none'); e.currentTarget.setPointerCapture(e.pointerId); }}
+          onPointerMove={move}
+          onPointerUp={end}
+          onPointerCancel={end}
+          aria-hidden
+        >
+          <span />
+        </div>
+        <div className="sheet-head">
+          <h2>{title}</h2>
+          <button type="button" className="sheet-x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <div className="sheet-body">{children}</div>
+      </div>
+    </div>
+  );
+}

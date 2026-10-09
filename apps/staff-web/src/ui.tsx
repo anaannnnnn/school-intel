@@ -120,7 +120,7 @@ export function DataTable<T>({ rows, columns, onRow, empty, caption }: { rows: T
               tabIndex={onRow ? 0 : undefined}
             >
               {columns.map((c) => (
-                <td key={c.key} style={{ textAlign: c.align === 'end' ? 'end' : undefined }}>{c.render(r)}</td>
+                <td key={c.key} data-label={c.label} style={{ textAlign: c.align === 'end' ? 'end' : undefined }}>{c.render(r)}</td>
               ))}
             </tr>
           ))}
