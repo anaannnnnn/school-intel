@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowUp, Check, ListChecks, MessagesSquare, ShieldCheck, UserRound } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Dialog, Steps, TextArea, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { getDb, staff, useDb } from '@school-intel/api';
+import { className, getDb, staff, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { PageFoot, PageHead, Restricted } from '../ui';
 import { REQUEST } from '../statuses';
@@ -110,7 +110,7 @@ export function RequestScreen({ actor }: { actor: Actor }) {
               <Avatar initials={r.student.initials} size="lg" />
               <div>
                 <Link to={`/students/${r.studentId}`} className="strong" style={{ fontWeight: 600 }}>{r.student.name}</Link>
-                <div className="small muted">Year {r.student.classId}</div>
+                <div className="small muted">{className(r.student.classId)}</div>
               </div>
             </div>
             <dl className="kv">

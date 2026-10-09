@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Award, Bell, BookMarked, CalendarCheck, CalendarDays, ChevronRight, ClipboardList, GraduationCap, LifeBuoy, LogOut, Settings, type LucideIcon } from 'lucide-react';
 import { Avatar, Card } from '@school-intel/ui';
-import { SCHOOL, learn, setSession, useDb } from '@school-intel/api';
+import { className, learn, SCHOOL, setSession, useDb } from '@school-intel/api';
 import { PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
 import '../student-c1.css';
@@ -66,7 +66,7 @@ export function Me() {
           <Avatar initials={child.initials} size="lg" />
           <div className="grow" style={{ minWidth: 0 }}>
             <strong>{name}</strong>
-            <div className="small muted">Year {child.classId} · Student</div>
+            <div className="small muted">{className(child.classId)} · Student</div>
             <div className="small muted">{SCHOOL.name} · {child.sisId}</div>
           </div>
         </div>
@@ -104,7 +104,7 @@ export function Me() {
         </ul>
       </Card>
 
-      <p className="small muted" style={{ textAlign: 'center' }}>School records remain the official source · Fictional demonstration data</p>
+      <p className="small muted" style={{ textAlign: 'center' }}>School records remain the official source</p>
     </>
   );
 }

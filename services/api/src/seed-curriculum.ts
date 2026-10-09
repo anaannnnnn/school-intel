@@ -22,6 +22,7 @@ import type {
   Topic,
 } from '@school-intel/contracts';
 import catalogueJson from './curriculum/catalogue.json';
+import notesJson from './curriculum/notes.json';
 
 export interface CatalogueTopic {
   no: number;
@@ -41,6 +42,13 @@ export interface CatalogueCourse {
 export type Programme = 'cbse' | 'icse' | 'isc' | 'igcse' | 'olevel' | 'as' | 'al';
 
 export const catalogue = catalogueJson as unknown as CatalogueCourse[];
+
+/** Study notes written for a topic. Keyed by `topicKey`; see docs/curriculum-data.md. */
+export interface TopicNote {
+  minutes: number;
+  paragraphs: string[];
+}
+const notes = notesJson as unknown as Record<string, TopicNote>;
 
 export const PROGRAMME_LABEL: Record<Programme, string> = {
   cbse: 'CBSE',
@@ -166,15 +174,40 @@ export function classLabel(spec: ClassSpec): string {
   return `${unit} ${spec.grade}${spec.stream ? ` ${spec.stream}` : ''} · ${PROGRAMME_LABEL[spec.p]}`;
 }
 
+/** Two-year Cambridge courses share one topic list across Year 10 and 11, so they share notes too. */
+export function topicKey(spec: ClassSpec, course: CatalogueCourse, tp: CatalogueTopic): string {
+  const span = spec.p === 'igcse' || spec.p === 'olevel' ? 'y10-11' : String(spec.grade);
+  return `${spec.p}|${span}|${course.s}|${tp.no}|${tp.title}`;
+}
+
+/** Every distinct topic the seeded classes study, for writing notes. */
+export function topicTasks() {
+  const seen = new Map<string, { key: string; board: string; programme: Programme; level: string; subject: string; code: string | null; no: number; title: string; flag?: string; parts?: string[] }>();
+  for (const spec of CLASS_SPECS) {
+    for (const name of spec.subjects) {
+      const course = findCourse(spec.p, spec.p === 'igcse' || spec.p === 'olevel' ? 10 : spec.grade, name)!;
+      for (const tp of classTopics(spec, course)) {
+        const key = topicKey(spec, course, tp);
+        if (seen.has(key)) continue;
+        const level = spec.p === 'igcse' ? 'IGCSE (Years 10-11)' : spec.p === 'olevel' ? 'O Level (Years 10-11)' : spec.p === 'as' ? 'AS Level (Year 12)' : spec.p === 'al' ? 'A Level (Year 13)' : `${PROGRAMME_LABEL[spec.p]} Class ${spec.grade}`;
+        seen.set(key, { key, board: PROGRAMME_LABEL[spec.p], programme: spec.p, level, subject: course.s.replace(/\(.*\)/, '').trim(), code: course.code, no: tp.no, title: tp.title, flag: tp.flag, parts: tp.parts });
+      }
+    }
+  }
+  return [...seen.values()];
+}
+
 function materialBody(spec: ClassSpec, course: CatalogueCourse, topic: CatalogueTopic): string {
   const board = PROGRAMME_LABEL[spec.p];
   const ref = `${board}${course.code ? ` ${course.code}` : ''} · ${course.s} · ${topic.flag ? `${topic.flag} · ` : ''}${spec.p === 'cbse' ? 'chapter' : 'topic'} ${topic.no}`;
   const q = encodeURIComponent(`${topic.title} ${course.s.replace(/\(.*\)/, '').trim()}`);
-  const paras = [`Syllabus reference: ${ref}.`];
+  const note = notes[topicKey(spec, course, topic)];
+  const paras: string[] = note ? [...note.paragraphs, 'Written as a study aid for this syllabus topic (AI-drafted original text). Your teacher should check it against your class notes and the official syllabus.'] : [];
+  paras.push(`Syllabus reference: ${ref}.`);
   if (topic.parts?.length) paras.push(`The syllabus lists these sub-topics under "${topic.title}":\n${topic.parts.map((x) => `• ${x}`).join('\n')}`);
   paras.push(`Official source (chapter list and syllabus): ${topic.url ?? course.src}`);
   paras.push(`Free reading: Wikipedia https://en.wikipedia.org/w/index.php?search=${q} · Wikibooks https://en.wikibooks.org/w/index.php?search=${q}. Both are CC BY-SA, so check the page against your syllabus before relying on it.`);
-  paras.push('Your teacher will add class notes, worksheets and questions for this topic. This guide only points to the official syllabus and open resources.');
+  if (!note) paras.push('Your teacher will add class notes, worksheets and questions for this topic. This guide only points to the official syllabus and open resources.');
   return paras.join('\n\n');
 }
 
@@ -218,20 +251,21 @@ export function createCurriculumSeed(): CurriculumSeed {
       const tch = teacher(spec, name);
       const sid = `sub-${spec.id.toLowerCase()}-${slug(name)}`;
       const short = name.replace(/\(.*\)/, '').trim();
-      subjectRows.push({ id: sid, name: short, short: short.length > 12 ? short.split(' ')[0] : short, classId: spec.id, teacherId: tch.id, hue: hueOf(name) });
+      subjectRows.push({ id: sid, name: short, short: short.length > 16 ? short.split(' ')[0] : short, classId: spec.id, teacherId: tch.id, hue: hueOf(name) });
       classTopics(spec, course).forEach((tp, i) => {
         const tid = `tp-${spec.id.toLowerCase()}-${slug(name)}-${i + 1}`;
         out.topics.push({ id: tid, subjectId: sid, name: tp.title, order: i + 1 });
+        const note = notes[topicKey(spec, course, tp)];
         out.materials.push({
           id: `MAT-C-${spec.id}-${slug(name)}-${i + 1}`,
           subjectId: sid,
           topicId: tid,
-          title: `${tp.title}: syllabus guide`,
+          title: note ? `${tp.title}: study notes` : `${tp.title}: syllabus guide`,
           kind: 'notes',
           body: materialBody(spec, course, tp),
-          minutes: 5,
+          minutes: note?.minutes ?? 5,
           status: 'published',
-          aiGenerated: false,
+          aiGenerated: !!note,
           createdBy: tch.id,
           updatedAt: t('2026-09-01', '09:00'),
         });

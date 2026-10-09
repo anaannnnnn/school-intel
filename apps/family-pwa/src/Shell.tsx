@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, ChartNoAxesColumn, ChevronLeft, House, Inbox, LayoutGrid, Library, MessageCircleQuestion, MessageSquareText, PenLine, UserRound, type LucideIcon } from 'lucide-react';
 import { Avatar, cx } from '@school-intel/ui';
-import { family, useDb } from '@school-intel/api';
+import { className, family, useDb } from '@school-intel/api';
 import { useFamily } from './family-context';
 import { greeting } from './screens/ParentToday';
 
@@ -55,6 +55,10 @@ export function Shell() {
         <Outlet />
       </main>
       <nav className="tabbar" aria-label="Primary" hidden={focus}>
+        <div className="rail-brand" aria-hidden>
+          <span className="rail-mark"><i /><i /><i /></span>
+          <span className="rail-name"><strong>Horizon Learning</strong><small>School Intelligence</small></span>
+        </div>
         {tabs.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} className={({ isActive }) => cx('tab', isActive && 'is-active')}>
             <span className="tab-icon" aria-hidden>
@@ -95,7 +99,7 @@ export function ChildSwitcher() {
       <div className="context-pill">
         <Avatar initials={child.initials} />
         <span>
-          <strong>{child.firstName}</strong> · Year {child.classId}
+          <strong>{child.firstName}</strong> · {className(child.classId)}
         </span>
       </div>
     ) : null;
@@ -107,7 +111,7 @@ export function ChildSwitcher() {
           <Avatar initials={c.initials} />
           <span>
             <strong>{c.firstName}</strong>
-            <small>Year {c.classId}</small>
+            <small>{className(c.classId)}</small>
           </span>
         </button>
       ))}

@@ -94,7 +94,7 @@ export function Behaviour({ actor }: { actor: Actor }) {
         <SelectField label="Location" value={location} onChange={(e) => setLocation(e.target.value)} options={LOCATIONS} />
         <TextArea label="What happened" value={description} onChange={(e) => { setDescription(e.target.value); setError(''); }} hint="Describe what was seen and heard. Avoid judgements about character." error={error} rows={4} />
         <Segmented label="Source" value={verified} onChange={setVerified} options={[{ value: 'unverified', label: 'Reported to me' }, { value: 'verified', label: 'I witnessed it' }]} />
-        <Callout tone="neutral">Participants are recorded in the SIS behaviour module; this demo stores the pattern-level record only.</Callout>
+        <Callout tone="neutral">Participants are recorded in the SIS behaviour module; this app stores the pattern-level record only.</Callout>
       </Dialog>
     </>
   );

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, FileText, Library, Presentation, Search, Video, X, type LucideIcon } from 'lucide-react';
 import { Button, EmptyState, Progress, errorText, formatDate, useToast } from '@school-intel/ui';
-import { learn, useDb } from '@school-intel/api';
+import { className, learn, useDb } from '@school-intel/api';
 import type { MaterialKind } from '@school-intel/contracts';
 import { PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
@@ -60,7 +60,7 @@ export function Learn() {
   if (!subjects.length) {
     return (
       <>
-        <PageHeader eyebrow={`Year ${child.classId}`} title="Learn" />
+        <PageHeader eyebrow={`${className(child.classId)}`} title="Learn" />
         <EmptyState icon={Library} title="No subjects shared yet">
           When your teachers share notes, videos and worksheets with your class, they will appear here.
         </EmptyState>
@@ -82,7 +82,7 @@ export function Learn() {
 
   return (
     <>
-      <PageHeader eyebrow={`Year ${child.classId} · ${subjects.length} subjects`} title="Learn" />
+      <PageHeader eyebrow={`${className(child.classId)} · ${subjects.length} subjects`} title="Learn" />
 
       <div className="c1-search" role="search">
         <Search size={18} aria-hidden />

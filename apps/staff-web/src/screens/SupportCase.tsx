@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ClipboardCheck, History, Info, Plus, Search } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Checkbox, Chip, Dialog, TextArea, TextField, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { staff, useDb } from '@school-intel/api';
+import { className, staff, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { PageFoot, PageHead, Restricted, Stat } from '../ui';
 import { CASE } from '../statuses';
@@ -48,7 +48,7 @@ export function SupportCaseScreen({ actor }: { actor: Actor }) {
     <>
       <PageHead
         title={`${c.id} · Support case`}
-        sub={<span className="row wrap"><Avatar initials={c.student.initials} /> <Link to={`/students/${c.studentId}`}>{c.student.name}</Link> · Year {c.student.classId} · Assigned to {c.owner} · <Chip tone="restricted">Staff restricted</Chip></span>}
+        sub={<span className="row wrap"><Avatar initials={c.student.initials} /> <Link to={`/students/${c.studentId}`}>{c.student.name}</Link> · {className(c.student.classId)} · Assigned to {c.owner} · <Chip tone="restricted">Staff restricted</Chip></span>}
         spec="MVP · FR-S01 / FR-S03"
         actions={
           !closed && (

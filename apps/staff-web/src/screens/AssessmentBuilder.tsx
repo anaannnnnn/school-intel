@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ClipboardList, Info, Lock, Save, Sparkles, X } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Checkbox, Chip, EmptyState, Segmented, SelectField, Steps, Switch, TextField, errorText, useToast, type Tone } from '@school-intel/ui';
-import { AI_DISCLOSURE, getDb, teach, useDb } from '@school-intel/api';
+import { AI_DISCLOSURE, className, getDb, teach, useDb } from '@school-intel/api';
 import type { Actor, Question, QuestionType } from '@school-intel/contracts';
 import { AiTag, PageFoot, PageHead } from '../ui';
 import { Dots } from './Questions';
@@ -140,7 +140,7 @@ function Builder({ actor }: { actor: Actor }) {
                     setTopicIds(topicsOf(sid).slice(0, 1).map((t) => t.id));
                   });
                 }}
-                options={own.map((s) => ({ value: s.id, label: `${s.name} · Year ${s.classId}` }))}
+                options={own.map((s) => ({ value: s.id, label: `${s.name} · ${className(s.classId)}` }))}
               />
               {kind === 'test' ? (
                 <TextField label="Time limit (minutes)" type="number" min={5} max={180} value={duration} onChange={(e) => setDuration(e.target.value)} />
@@ -209,7 +209,7 @@ function Builder({ actor }: { actor: Actor }) {
             />
           </Card>
           <Card className="ai-panel">
-            <CardHeader icon={Sparkles} title="Build paper with AI" sub="Balances topics and orders easiest first" action={<AiTag>Demo AI</AiTag>} />
+            <CardHeader icon={Sparkles} title="Build paper with AI" sub="Balances topics and orders easiest first" action={<AiTag>Rules-based AI</AiTag>} />
             <Callout tone="info" icon={Info}>Questions come only from your approved bank. Drafts and other teachers’ questions are never used.</Callout>
             <div className="row wrap" style={{ marginBlockStart: 14, gap: 8 }}>
               <Button className="btn-ai" icon={Sparkles} onClick={build} disabled={!topicIds.length}>

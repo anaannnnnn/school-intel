@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CircleCheck, FileText, ListChecks, Paperclip, ReceiptText, ShieldCheck, Upload, WifiOff } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Chip, Freshness, Progress, Steps, errorText, formatBytes, formatDate, formatTime, useToast } from '@school-intel/ui';
-import { family, useDb } from '@school-intel/api';
+import { className, family, useDb } from '@school-intel/api';
 import type { Submission } from '@school-intel/contracts';
 import { PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
@@ -106,7 +106,7 @@ export function AssignmentScreen() {
 
   return (
     <>
-      <PageHeader back="/tasks" eyebrow={`${task.subject} · Year ${child.classId}`} title={task.title} />
+      <PageHeader back="/tasks" eyebrow={`${task.subject} · ${className(child.classId)}`} title={task.title} />
       <div className="row wrap">
         <Chip tone={latest ? 'success' : 'warning'}>Due {formatDate(task.due)}, {formatTime(task.due)}</Chip>
         <Freshness source="LMS" at={task.source.updatedAt} stale={task.stale} />

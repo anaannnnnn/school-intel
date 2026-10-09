@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, BellRing, CheckCheck, CircleCheck, PenLine, Send, TriangleAlert } from 'lucide-react';
 import { Avatar, Button, Callout, Card, Chip, errorText, formatTime, formatWeekday, useToast } from '@school-intel/ui';
-import { teach, useDb } from '@school-intel/api';
+import { className, teach, useDb } from '@school-intel/api';
 import type { Actor, Presence } from '@school-intel/contracts';
 import { PageFoot, PageHead, Restricted, SubjectDot } from '../ui';
 import '../teaching-a.css';
@@ -75,7 +75,7 @@ function RegisterView({ actor, data }: { actor: Actor; data: ReturnType<typeof t
             {subject.name} register
           </span>
         }
-        sub={`Year ${period.classId} · ${formatWeekday(register.date)} · ${period.start}–${period.end} · Room ${period.room}`}
+        sub={`${className(period.classId)} · ${formatWeekday(register.date)} · ${period.start}–${period.end} · Room ${period.room}`}
         spec="Teaching · lesson register"
         actions={
           <Link to="/lessons" className="btn btn-secondary">

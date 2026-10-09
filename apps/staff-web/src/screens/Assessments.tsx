@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, CalendarClock, ClipboardCheck, FileClock, FileStack, Gauge, PenLine, Plus, Timer } from 'lucide-react';
 import { Card, CardHeader, Chip, EmptyState, Progress, formatDate, formatDateTime, formatTime, type Tone } from '@school-intel/ui';
-import { DEMO_DATE, getDb, teach, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, getDb, teach, useDb } from '@school-intel/api';
 import type { Actor, Assessment } from '@school-intel/contracts';
 import { DataTable, Heat, ListRow, PageFoot, PageHead, Stat, SubjectDot, Tabs } from '../ui';
 import '../teaching-a.css';
@@ -194,7 +194,7 @@ export function Assessments({ actor }: { actor: Actor }) {
                     title={e.title}
                     sub={
                       <span className="ta-subj">
-                        <SubjectDot hue={s.hue} /> {s.short} · Year {e.classId} · {e.topicIds.length} topic{e.topicIds.length === 1 ? '' : 's'}
+                        <SubjectDot hue={s.hue} /> {s.short} · {className(e.classId)} · {e.topicIds.length} topic{e.topicIds.length === 1 ? '' : 's'}
                       </span>
                     }
                     value={formatDate(e.date, { weekday: 'short', day: 'numeric', month: 'short' })}

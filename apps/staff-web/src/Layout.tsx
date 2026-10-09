@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { Avatar, Switch, cx, formatDate, formatTime, usePalette } from '@school-intel/ui';
 import { STAFF_PALETTES } from './palettes';
-import { DEMO_DATE, family, resetDemo, SCHOOL, setSession, staff, teach, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, family, resetData, SCHOOL, setSession, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { setAnnotations, useAnnotations } from './ui';
 
@@ -131,10 +131,10 @@ export function Layout({ actor }: { actor: Actor }) {
       <a className="skip-link" href="#main">Skip to content</a>
       <aside className="sidebar" aria-label="Workspace navigation">
         <Link to="/overview" className="side-brand">
-          <span className="side-logo" aria-hidden>DX</span>
+          <span className="side-logo" aria-hidden>HL</span>
           <span>
-            <strong>DEVX</strong>
-            <small>School Intelligence · {SCHOOL.shortName}</small>
+            <strong>Horizon Learning</strong>
+            <small>School Intelligence</small>
           </span>
         </Link>
         <StudentSearch actor={actor} onGo={(id) => navigate(`/students/${id}`)} />
@@ -223,10 +223,10 @@ export function Layout({ actor }: { actor: Actor }) {
                     <Switch label="Show PRD references" hint="Phase and requirement IDs on each page" checked={ann} onChange={setAnnotations} />
                   </div>
                   <button type="button" className="popover-item" onClick={() => setSession('staff', null)}>
-                    <Users size={16} aria-hidden /> <span>Switch staff member<small>Sign in as another demo role</small></span>
+                    <Users size={16} aria-hidden /> <span>Switch account<small>Sign in as someone else</small></span>
                   </button>
-                  <button type="button" className="popover-item" onClick={() => { resetDemo(); setOpen(null); }}>
-                    <RotateCcw size={16} aria-hidden /> <span>Reset demo data<small>Restores the 6 October scenario</small></span>
+                  <button type="button" className="popover-item" onClick={() => { resetData(); setOpen(null); }}>
+                    <RotateCcw size={16} aria-hidden /> <span>Reload school data<small>Discards changes saved in this browser</small></span>
                   </button>
                   <button type="button" className="popover-item" onClick={() => setSession('staff', null)}>
                     <LogOut size={16} aria-hidden /> <span>Sign out</span>
@@ -298,7 +298,7 @@ function StudentSearch({ actor, onGo }: { actor: Actor; onGo: (id: string) => vo
           {results.map((s, i) => (
             <a key={s.id} href={`#/students/${s.id}`} data-active={i === active} onClick={(e) => { e.preventDefault(); go(s.id); }}>
               <Avatar initials={s.initials} />
-              <span className="grow">{s.name}<span className="small muted"> · Year {s.classId}</span></span>
+              <span className="grow">{s.name}<span className="small muted"> · {className(s.classId)}</span></span>
               <ClipboardList size={14} className="muted" aria-hidden />
             </a>
           ))}

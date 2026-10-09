@@ -6,28 +6,14 @@ import type {
   Account,
   Activity,
   AbsenceExplanation,
-  Assessment,
   Attempt,
-  AttendanceDay,
-  BehaviourPoint,
-  Doubt,
-  ExamEvent,
-  LessonRegister,
-  Material,
-  PastPaper,
-  Period,
-  Question,
-  Subject,
-  Topic,
   WrittenSubmission,
-  WrittenTask,
   Assignment,
   AuditEvent,
   BusRoute,
   Circular,
   ConcernReport,
   Connector,
-  FamilyPreferences,
   FamilyRequest,
   FeedItem,
   Guardian,
@@ -42,84 +28,17 @@ import type {
   SchoolClass,
   StaffMember,
   Student,
-  Submission,
   SupportCase,
 } from '@school-intel/contracts';
 import * as L from './seed-learning';
+import { DEMO_DATE, SCHOOL } from './constants';
+import type { Db } from './db-types';
 import { createCurriculumSeed } from './seed-curriculum';
 import { markObjective, suggestRubricMarks } from './ai';
 
-export const SCHOOL = {
-  id: 'horizon',
-  name: 'Horizon Learning School',
-  shortName: 'Horizon Learning',
-  timezone: 'Asia/Dubai',
-};
-
-/** The demo is pinned to the PRD date: Tuesday 6 October 2026, Dubai time. */
-export const DEMO_DATE = '2026-10-06';
+export { SCHOOL, DEMO_DATE };
 export const t = (date: string, time: string) => `${date}T${time}:00+04:00`;
 const today = (time: string) => t(DEMO_DATE, time);
-
-export interface Db {
-  version: number;
-  staff: StaffMember[];
-  students: Student[];
-  guardians: Guardian[];
-  relationships: GuardianRelationship[];
-  classes: SchoolClass[];
-  feed: FeedItem[];
-  drafts: ReportDraft[];
-  cases: SupportCase[];
-  requests: FamilyRequest[];
-  circulars: Circular[];
-  assignments: Assignment[];
-  submissions: Submission[];
-  passports: LearningPassport[];
-  concerns: ConcernReport[];
-  registers: Register[];
-  explanations: AbsenceExplanation[];
-  incidents: Incident[];
-  homework: HomeworkItem[];
-  activities: Activity[];
-  routes: BusRoute[];
-  connectors: Connector[];
-  quarantine: QuarantinedRow[];
-  notifications: Notification[];
-  audit: AuditEvent[];
-  preferences: Record<string, FamilyPreferences>;
-  consents: Record<string, ISOConsent>;
-  // Learning, assessment and records (schema v4)
-  subjects: Subject[];
-  topics: Topic[];
-  materials: Material[];
-  questions: Question[];
-  pastPapers: PastPaper[];
-  assessments: Assessment[];
-  attempts: Attempt[];
-  writtenTasks: WrittenTask[];
-  writtenSubmissions: WrittenSubmission[];
-  doubts: Doubt[];
-  examEvents: ExamEvent[];
-  periods: Period[];
-  lessonRegisters: LessonRegister[];
-  attendanceHistory: Record<string, AttendanceDay[]>;
-  behaviourPoints: BehaviourPoint[];
-  /** Completed study-plan task IDs per student. */
-  planDone: Record<string, string[]>;
-  /** Demo login IDs (schema v6). */
-  accounts: Account[];
-  counters: Record<string, number>;
-  demo: { lmsOutage: boolean; staleBus: boolean; failPrimaryDelivery: boolean };
-}
-
-export interface ISOConsent {
-  key: string;
-  studentId: string;
-  label: string;
-  given: boolean;
-  at?: string;
-}
 
 const src = (system: 'SIS' | 'LMS' | 'Transport' | 'Platform', recordId: string, updatedAt: string) => ({
   system,
@@ -140,7 +59,17 @@ const student = (id: string, name: string, classId: string, sisId: string): Stud
   };
 };
 
-export function createSeed(): Db {
+/** Login IDs for the original Year 7A scenario, so every person in the demo can sign in. */
+function baseAccounts(staff: StaffMember[], students: Student[], guardians: Guardian[]): Account[] {
+  const first = (n: string) => n.split(' ')[0].toLowerCase();
+  return [
+    ...staff.map((s): Account => ({ loginId: `${s.roles.includes('teacher') ? 'tch' : 'staff'}.${first(s.name)}`, kind: 'staff', id: s.id, label: `${s.name} · ${s.title}`, group: 'Year 7 and school staff' })),
+    ...students.map((s): Account => ({ loginId: `stu.${first(s.name)}`, kind: 'student', id: s.id, label: `${s.name} · Year ${s.classId}`, group: `Year ${s.yearGroup} · ${s.classId}` })),
+    ...guardians.map((g): Account => ({ loginId: `par.${first(g.name)}`, kind: 'guardian', id: g.id, label: `${g.name} · Parent`, group: 'Year 7 and school parents' })),
+  ];
+}
+
+export function createSeedWithAccounts(): { doc: Db; accounts: Account[] } {
   const cur = createCurriculumSeed();
   const staff: StaffMember[] = [
     { id: 'st-nadia', name: 'Nadia Farooq', title: 'Mathematics teacher · Year 7 tutor', initials: 'NF', roles: ['teacher'], classIds: ['7A'], email: 'nadia.farooq@horizon.example' },
@@ -491,7 +420,7 @@ export function createSeed(): Db {
     }),
   }));
 
-  return {
+  const doc: Db = {
     version: 6,
     staff: [...staff, ...cur.staff], students: [...students, ...cur.students], guardians: [...guardians, ...cur.guardians], relationships: [...relationships, ...cur.relationships], classes: [...classes, ...cur.classes], feed, drafts, cases, requests, circulars, assignments,
     submissions: [], passports, concerns, registers, explanations, incidents, homework, activities, routes,
@@ -514,7 +443,6 @@ export function createSeed(): Db {
     doubts: L.doubts,
     examEvents: L.examEvents,
     periods: [...L.periods, ...cur.periods],
-    accounts: cur.accounts,
     lessonRegisters: L.seededRegisters(),
     attendanceHistory: L.seededAttendanceHistory(),
     behaviourPoints: L.behaviourPoints,
@@ -522,4 +450,8 @@ export function createSeed(): Db {
     counters: { REQ: 83, SG: 26, SUB: 720, BI: 212, A: 1005, N: 5, SC: 1044, AE: 311, HW: 11, MAT: 105, Q: 402, AS: 1, AT: 100, WS: 3, DB: 203, BP: 8 },
     demo: { lmsOutage: false, staleBus: false, failPrimaryDelivery: false },
   };
+  return { doc, accounts: [...baseAccounts(staff, students, guardians), ...cur.accounts] };
 }
+
+/** The school database document without its logins. */
+export const createSeed = (): Db => createSeedWithAccounts().doc;

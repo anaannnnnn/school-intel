@@ -4,11 +4,9 @@ import react from '@vitejs/plugin-react';
 
 const path = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
-// Both surfaces are served from one origin so the demo API's local store is
-// shared: a request a guardian submits in the family app appears in the staff CRM.
-//   /               product entry
-//   /family-pwa/    parent and student mobile web app (installable PWA)
-//   /staff-web/     teacher and administration CRM
+// One web app. It asks who you are (student, parent or teacher), signs you in, then loads the matching
+// workspace: the family app (students and parents) or the staff workspace. Both read the same school
+// database file, so a request a guardian sends appears in the staff queue.
 export default defineConfig({
   root: path('./apps'),
   publicDir: path('./apps/public'),
@@ -25,11 +23,7 @@ export default defineConfig({
     outDir: path('./dist'),
     emptyOutDir: true,
     rollupOptions: {
-      input: {
-        index: path('./apps/index.html'),
-        family: path('./apps/family-pwa/index.html'),
-        staff: path('./apps/staff-web/index.html'),
-      },
+      input: { index: path('./apps/index.html') },
     },
   },
   server: { host: true, port: 5173 },
@@ -38,5 +32,6 @@ export default defineConfig({
     root: path('.'),
     include: ['services/**/*.test.ts'],
     environment: 'node',
+    setupFiles: [path('./services/api/src/test-setup.ts')],
   },
 });

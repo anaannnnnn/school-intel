@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpenCheck, Download, Grid3x3, Info } from 'lucide-react';
 import { Callout, Card, CardHeader, Chip, EmptyState, Segmented, formatDate } from '@school-intel/ui';
-import { teach, useDb } from '@school-intel/api';
+import { className, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { Heat, PageFoot, PageHead, Stat, SubjectDot } from '../ui';
 import '../teaching-b.css';
@@ -66,7 +66,7 @@ export function Gradebook({ actor }: { actor: Actor }) {
     <>
       <PageHead
         title="Gradebook"
-        sub={`${book.subject.name} · Year ${book.subject.classId} · ${book.editable ? 'your subject' : 'read only'}`}
+        sub={`${book.subject.name} · ${className(book.subject.classId)} · ${book.editable ? 'your subject' : 'read only'}`}
         spec="Teaching · Gradebook"
         actions={<button type="button" className="btn btn-secondary" onClick={() => exportCsv(book)}><Download size={18} aria-hidden />Export CSV</button>}
       />

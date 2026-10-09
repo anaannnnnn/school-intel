@@ -75,7 +75,7 @@ export function Stat({ value, label, foot, tone, to, icon: Icon, spark, delta }:
 }
 
 export function PageFoot({ updated }: { updated?: string }) {
-  return <p className="page-foot">Source records remain authoritative · Demo content is fictional{updated ? ` · Updated ${updated}` : ''}</p>;
+  return <p className="page-foot">Source records remain authoritative{updated ? ` · Updated ${updated}` : ''}</p>;
 }
 
 export function Restricted({ message }: { message?: string }) {

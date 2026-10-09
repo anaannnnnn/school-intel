@@ -5,7 +5,7 @@ import { AccessDenied, ValidationError } from './access';
 import * as ai from './ai';
 import * as learn from './learn';
 import * as teach from './teach';
-import { getDb, resetDemo } from './store';
+import { getDb, resetData } from './store';
 
 const fatima: Actor = { kind: 'guardian', id: 'g-fatima' };
 const sara: Actor = { kind: 'student', id: 'stu-sara' };
@@ -15,7 +15,7 @@ const priya: Actor = { kind: 'staff', id: 'st-priya' };
 const james: Actor = { kind: 'staff', id: 'st-james' };
 const daniel: Actor = { kind: 'staff', id: 'st-daniel' };
 
-beforeEach(() => resetDemo());
+beforeEach(() => resetData());
 
 describe('AI study helper', () => {
   it('is not available below Year 7 or to guardians', () => {

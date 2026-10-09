@@ -2,7 +2,7 @@
 
 import type { Actor, CaseStatus, HomeworkItem, Incident, StaffRole } from '@school-intel/contracts';
 import { audit, AccessDenied, canStaffSeeStudent, hasRole, requireRole, staffOf, ValidationError } from './access';
-import { DEMO_DATE } from './seed';
+import { DEMO_DATE } from './constants';
 import { getDb, mutate, nextId, nowIso } from './store';
 
 const nameOf = (id: string) => getDb().staff.find((s) => s.id === id)?.name ?? id;

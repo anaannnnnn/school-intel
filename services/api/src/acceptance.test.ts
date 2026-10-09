@@ -4,7 +4,7 @@ import type { Actor } from '@school-intel/contracts';
 import { AccessDenied, ValidationError } from './access';
 import * as family from './family';
 import * as staff from './staff';
-import { getDb, resetDemo } from './store';
+import { getDb, resetData } from './store';
 
 const fatima: Actor = { kind: 'guardian', id: 'g-fatima' };
 const khalid: Actor = { kind: 'guardian', id: 'g-khalid' };
@@ -14,7 +14,7 @@ const aisha: Actor = { kind: 'staff', id: 'st-aisha' };
 const layla: Actor = { kind: 'staff', id: 'st-layla' };
 const karim: Actor = { kind: 'staff', id: 'st-karim' };
 
-beforeEach(() => resetDemo());
+beforeEach(() => resetData());
 
 describe('P01 Teacher Copilot', () => {
   it('never shows an unapproved comment to parents', () => {

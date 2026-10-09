@@ -187,7 +187,7 @@ export function Questions({ actor }: { actor: Actor }) {
 
         {own.length ? (
           <Card className="ai-panel">
-            <CardHeader icon={Sparkles} title="AI question generator" sub="Drafts questions from your published materials" action={<AiTag>Demo AI</AiTag>} />
+            <CardHeader icon={Sparkles} title="AI question generator" sub="Drafts questions from your published materials" action={<AiTag>Rules-based AI</AiTag>} />
             <div className="stack">
               <div className="ta-gen">
                 <SelectField

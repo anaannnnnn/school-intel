@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Award, BookOpenCheck, Check, ClipboardList, Clock, FileText, Library, LifeBuoy, ListChecks, MapPin, MessageCircleQuestion, PenLine, Timer, type LucideIcon } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Progress, formatDate, formatTime, formatWeekday, useToast, errorText, type Tone } from '@school-intel/ui';
-import { DEMO_DATE, family, learn, nowIso, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, family, learn, nowIso, useDb } from '@school-intel/api';
 import { useFamily } from '../family-context';
 import { PRow, Ring, SectionTitle, SUBJECT_ICON, daysLabel, scoreTone } from '../kit';
 import { greeting } from './ParentToday';
@@ -122,7 +122,7 @@ export function StudentToday() {
       </div>
 
       <div className="row wrap" style={{ gap: 8 }}>
-        <span className="context-pill"><Avatar initials={child.initials} /><span>Year {child.classId}</span></span>
+        <span className="context-pill"><Avatar initials={child.initials} /><span>{className(child.classId)}</span></span>
         <Link to="/behaviour" className="context-pill c1-merits" aria-label={`${day.merits} merit points. See merits and behaviour`}>
           <span className="c1-merit-icon" aria-hidden><Award size={15} /></span>
           <span><strong>{day.merits}</strong> merit{day.merits === 1 ? '' : 's'}</span>
@@ -217,7 +217,7 @@ export function StudentToday() {
         </Link>
       </div>
 
-      <p className="small muted" style={{ textAlign: 'center' }}>School records remain the official source · Fictional demonstration data</p>
+      <p className="small muted" style={{ textAlign: 'center' }}>School records remain the official source</p>
     </>
   );
 }

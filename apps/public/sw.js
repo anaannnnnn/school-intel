@@ -1,7 +1,7 @@
-// School Intelligence family app service worker.
+// Horizon Learning School service worker.
 // Caches the static app shell so the app opens on a poor connection.
-// It never caches API responses, student records or safeguarding content.
-const CACHE = 'si-family-shell-v2';
+// It never caches the school database (data/school.db), student records or safeguarding content.
+const CACHE = 'si-shell-v3';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './index.html', './manifest.webmanifest', './icon.svg'])));

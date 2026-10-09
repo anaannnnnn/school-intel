@@ -2,13 +2,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Actor } from '@school-intel/contracts';
 import { AccessDenied } from './access';
-import { DEMO_PASSCODE, SignInError, demoAccounts, signInWithLoginId } from './auth';
+import { SignInError, accountsFor, signIn } from './auth';
+import { TEST_PASSCODE } from './test-setup';
 import * as learn from './learn';
 import * as teach from './teach';
 import { CLASS_SPECS, catalogue, findCourse } from './seed-curriculum';
-import { getDb, resetDemo } from './store';
+import { accountList, getDb, resetData } from './store';
 
-beforeEach(() => resetDemo());
+beforeEach(() => resetData());
 
 describe('curriculum catalogue', () => {
   it('has a real course, with chapter titles and a source, for every subject a class studies', () => {
@@ -55,8 +56,9 @@ describe('seeded people and records', () => {
     const d = getDb();
     const ids = [...d.staff.map((s) => s.id), ...d.students.map((s) => s.id), ...d.guardians.map((g) => g.id)];
     expect(new Set(ids).size).toBe(ids.length);
-    expect(new Set(d.accounts.map((a) => a.loginId)).size).toBe(d.accounts.length);
-    for (const a of d.accounts) {
+    const accounts = accountList();
+    expect(new Set(accounts.map((a) => a.loginId)).size).toBe(accounts.length);
+    for (const a of accounts) {
       const list = a.kind === 'staff' ? d.staff : a.kind === 'student' ? d.students : d.guardians;
       expect(list.some((p) => p.id === a.id), a.loginId).toBe(true);
     }
@@ -70,10 +72,10 @@ describe('seeded people and records', () => {
 });
 
 describe('access follows grade and board', () => {
-  const actorOf = (loginId: string, surface: 'family' | 'staff') => signInWithLoginId(loginId, DEMO_PASSCODE, surface);
+  const actorOf = (loginId: string, role: 'student' | 'parent' | 'teacher') => signIn(loginId, TEST_PASSCODE, role);
 
-  it('a CBSE Class 9 student sees only Class 9 CBSE subjects and real chapters', () => {
-    const me = actorOf('stu.cbse9.01', 'family');
+  it('a CBSE Class 9 student sees only Class 9 CBSE subjects and real chapters', async () => {
+    const me = await actorOf('stu.cbse9.01', 'student');
     const subs = learn.subjectsFor(me, me.id);
     expect(subs.map((s) => s.name).sort()).toEqual(['English', 'Mathematics', 'Science', 'Social Science']);
     const maths = subs.find((s) => s.name === 'Mathematics')!;
@@ -81,16 +83,16 @@ describe('access follows grade and board', () => {
     expect(detail.topics.map((t) => t.name)).toContain('Quadrilaterals');
   });
 
-  it('a parent can open only their own child', () => {
-    const parent = actorOf('par.igcse10.01', 'family');
+  it('a parent can open only their own child', async () => {
+    const parent = await actorOf('par.igcse10.01', 'parent');
     const own = getDb().relationships.find((r) => r.guardianId === parent.id)!.studentId;
     expect(learn.subjectsFor(parent, own).length).toBeGreaterThan(0);
     const other = getDb().students.find((s) => s.classId === '10IG' && s.id !== own)!;
     expect(() => learn.subjectsFor(parent, other.id)).toThrow(AccessDenied);
   });
 
-  it('a subject teacher sees only their own family and stage', () => {
-    const t = actorOf('tch.cbse.physics.upper', 'staff') as Actor;
+  it('a subject teacher sees only their own family and stage', async () => {
+    const t = (await actorOf('tch.cbse.physics.upper', 'teacher')) as Actor;
     const mine = teach.mySubjects(t);
     expect(mine.length).toBeGreaterThan(0);
     for (const s of mine) expect(['11CBS', '12CBS']).toContain(s.classId);
@@ -98,28 +100,41 @@ describe('access follows grade and board', () => {
     expect(mine.some((s) => s.id === cambridgePhysics.id)).toBe(false);
   });
 
-  it('students from different boards are not mixed in a roster', () => {
-    const t = actorOf('tch.cie-adv.physics.upper', 'staff') as Actor;
+  it('students from different boards are not mixed in a roster', async () => {
+    const t = (await actorOf('tch.cie-adv.physics.upper', 'teacher')) as Actor;
     expect(() => teach.classRoster(t, '9CB')).toThrow(AccessDenied);
     expect(teach.classRoster(t, '13ALS')).toBeTruthy();
   });
 });
 
 describe('login IDs', () => {
-  it('rejects a wrong passcode, an unknown ID and the wrong surface, and records each failure', () => {
+  it('rejects a wrong passcode and an unknown ID, and records each failure', async () => {
     const before = getDb().audit.length;
-    expect(() => signInWithLoginId('stu.cbse9.01', 'nope', 'family')).toThrow(SignInError);
-    expect(() => signInWithLoginId('nobody', DEMO_PASSCODE, 'family')).toThrow(SignInError);
-    expect(() => signInWithLoginId('stu.cbse9.01', DEMO_PASSCODE, 'staff')).toThrow(SignInError);
-    expect(() => signInWithLoginId('tch.cbse.physics.upper', DEMO_PASSCODE, 'family')).toThrow(SignInError);
-    expect(getDb().audit.length).toBe(before + 4);
+    await expect(signIn('stu.cbse9.01', 'nope', 'student')).rejects.toBeInstanceOf(SignInError);
+    await expect(signIn('nobody', TEST_PASSCODE, 'student')).rejects.toBeInstanceOf(SignInError);
+    expect(getDb().audit.length).toBe(before + 2);
     expect(getDb().audit[0].outcome).toBe('denied');
   });
 
-  it('is not case sensitive on the ID and lists accounts per surface', () => {
-    expect(signInWithLoginId(' STU.CBSE9.01 ', DEMO_PASSCODE, 'family').kind).toBe('student');
-    expect(demoAccounts('staff').every((a) => a.kind === 'staff')).toBe(true);
-    expect(demoAccounts('family').every((a) => a.kind !== 'staff')).toBe(true);
+  it('tells a person when their ID belongs to another role, only once the passcode is right', async () => {
+    await expect(signIn('stu.cbse9.01', TEST_PASSCODE, 'teacher')).rejects.toMatchObject({ otherRole: 'student' });
+    await expect(signIn('tch.cbse.physics.upper', TEST_PASSCODE, 'parent')).rejects.toMatchObject({ otherRole: 'teacher' });
+    await expect(signIn('stu.cbse9.01', 'nope', 'teacher')).rejects.toMatchObject({ otherRole: undefined });
+  });
+
+  it('is not case sensitive on the ID, and lists accounts per role without hashes', async () => {
+    expect((await signIn(' STU.CBSE9.01 ', TEST_PASSCODE, 'student')).kind).toBe('student');
+    expect(accountsFor('teacher').every((a) => a.kind === 'staff')).toBe(true);
+    expect(accountsFor('parent').every((a) => a.kind === 'guardian')).toBe(true);
+    expect(accountsFor('student').every((a) => a.kind === 'student')).toBe(true);
+    expect(JSON.stringify(accountsFor('student'))).not.toContain('scrypt');
+  });
+
+  it('gives the original Year 7A people login IDs too', async () => {
+    expect(await signIn('stu.sara', TEST_PASSCODE, 'student')).toEqual({ kind: 'student', id: 'stu-sara' });
+    expect(await signIn('par.fatima', TEST_PASSCODE, 'parent')).toEqual({ kind: 'guardian', id: 'g-fatima' });
+    expect(await signIn('tch.nadia', TEST_PASSCODE, 'teacher')).toEqual({ kind: 'staff', id: 'st-nadia' });
+    expect(await signIn('staff.samira', TEST_PASSCODE, 'teacher')).toEqual({ kind: 'staff', id: 'st-samira' });
   });
 });
 

@@ -45,7 +45,7 @@ export function Students({ actor }: { actor: Actor }) {
               label: 'Guardians',
               render: (s) => (s.guardians.length ? s.guardians.map((g) => (
                 <span key={g.guardianId} className="row small" style={{ gap: 6 }}>{g.guardian.name} {g.status === 'verified' ? <Chip tone="success">Verified</Chip> : <Chip tone="danger">Revoked</Chip>}</span>
-              )) : <span className="small muted">Not shown in demo</span>),
+              )) : <span className="small muted">Not available</span>),
             },
             { key: 'r', label: 'Open requests', render: (s) => (s.openRequests ? <Chip tone="warning">{s.openRequests}</Chip> : <span className="muted">—</span>) },
             { key: 'x', label: '', align: 'end', render: () => <ArrowRight size={16} className="muted" aria-hidden /> },

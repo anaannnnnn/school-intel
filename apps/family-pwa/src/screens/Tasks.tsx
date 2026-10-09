@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Callout, Chip, formatDate, formatTime } from '@school-intel/ui';
-import { family, useDb } from '@school-intel/api';
+import { className, family, useDb } from '@school-intel/api';
 import { ChildSwitcher, PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
 import { NoChildren } from './NoChildren';
@@ -13,7 +13,7 @@ export function Tasks() {
   const tasks = family.assignmentsFor(actor, child.id);
   return (
     <>
-      <PageHeader eyebrow={isParent ? `${child.firstName} · Year ${child.classId}` : `Year ${child.classId}`} title="Assignments" back={isParent ? '/learning' : undefined} />
+      <PageHeader eyebrow={isParent ? `${child.firstName} · ${className(child.classId)}` : `${className(child.classId)}`} title="Assignments" back={isParent ? '/learning' : undefined} />
       {isParent && <ChildSwitcher />}
       {tasks[0]?.stale && <Callout tone="warning">Assignments are the last confirmed copy. The learning platform is not responding.</Callout>}
       <div className="stack">

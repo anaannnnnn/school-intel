@@ -1,0 +1,28 @@
+# Used by Apache-based hosts (for example Cloudways). Other hosts ignore it.
+# The app uses hash routing, so no rewrite rules are needed.
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType application/wasm .wasm
+  AddType application/vnd.sqlite3 .db
+  AddType font/woff2 .woff2
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript application/json image/svg+xml application/manifest+json application/wasm application/vnd.sqlite3
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # The page, the service worker and the school database are always re-checked, so a new release shows up at once.
+  <FilesMatch "\.(html|webmanifest|db)$|sw\.js$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # Hashed build output never changes, so cache it for a year.
+  <If "%{REQUEST_URI} =~ m#/assets/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
+</IfModule>

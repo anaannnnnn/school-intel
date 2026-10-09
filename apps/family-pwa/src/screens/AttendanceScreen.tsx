@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CalendarCheck, Clock } from 'lucide-react';
 import { Callout, Card, Chip, formatDate, formatTime } from '@school-intel/ui';
-import { DEMO_DATE, learn, useDb } from '@school-intel/api';
+import { className, DEMO_DATE, learn, useDb } from '@school-intel/api';
 import type { AttendanceDay, Presence } from '@school-intel/contracts';
 import { ChildSwitcher, PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
@@ -59,7 +59,7 @@ export function AttendanceScreen() {
 
   return (
     <>
-      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · Year ${child.classId}` : 'Your record'} title="Attendance" />
+      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · ${className(child.classId)}` : 'Your record'} title="Attendance" />
       {isParent && <ChildSwitcher />}
 
       <section className="hero-card" aria-label="Attendance this term">

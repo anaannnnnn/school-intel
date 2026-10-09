@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CircleCheck, ClipboardCheck, FileText, Gauge, PenLine, Send, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, EmptyState, Progress, errorText, formatDateTime, useToast, type Tone } from '@school-intel/ui';
-import { teach, useDb } from '@school-intel/api';
+import { className, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { DataTable, PageFoot, PageHead, Stat, SubjectDot, Tabs } from '../ui';
 import '../teaching-b.css';
@@ -107,7 +107,7 @@ export function Marking({ actor }: { actor: Actor }) {
               <div key={t.id} className="tb-task">
                 <div style={{ minWidth: 0 }}>
                   <div className="tb-task-title">{t.title}</div>
-                  <div className="tb-task-meta">{t.subject.name} · Year {t.classId} · due {formatDateTime(t.due)}</div>
+                  <div className="tb-task-meta">{t.subject.name} · {className(t.classId)} · due {formatDateTime(t.due)}</div>
                   <Progress value={(t.submitted / Math.max(1, t.classSize)) * 100} label={`${t.submitted} of ${t.classSize} submitted`} />
                   <div className="tb-task-figs">
                     <span><b>{t.submitted}/{t.classSize}</b>submitted</span>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarClock, CircleStop, Info, Lock, Megaphone, PenLine, Play, Sparkles, Timer, TriangleAlert, Undo2, Users } from 'lucide-react';
 import { Avatar, Button, Callout, Card, CardHeader, Chip, Dialog, EmptyState, errorText, formatDateTime, formatTime, useToast, type Tone } from '@school-intel/ui';
-import { AI_DISCLOSURE, ValidationError, getDb, teach, useDb } from '@school-intel/api';
+import { AI_DISCLOSURE, className, getDb, teach, useDb, ValidationError } from '@school-intel/api';
 import type { Actor, Assessment, Attempt } from '@school-intel/contracts';
 import { AiTag, DataTable, Heat, PageFoot, PageHead, Restricted, Stat, SubjectDot, Tabs, band } from '../ui';
 import { Dots, QuestionBody } from './Questions';
@@ -92,7 +92,7 @@ function DetailView({ actor, data }: { actor: Actor; data: Detail }) {
           <span className="ta-meta" style={{ fontSize: 14 }}>
             <span className="ta-subj">
               <SubjectDot hue={a.subject.hue} />
-              {a.subject.name} · Year {a.classId}
+              {a.subject.name} · {className(a.classId)}
             </span>
             <span>
               {formatDateTime(a.opensAt)}

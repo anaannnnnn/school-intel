@@ -1,6 +1,6 @@
 import { CalendarClock, Eye, EyeOff, Target } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Chip, formatDate, type Tone, useToast } from '@school-intel/ui';
-import { staff, useDb } from '@school-intel/api';
+import { className, staff, useDb } from '@school-intel/api';
 import type { Actor, Mastery } from '@school-intel/contracts';
 import { DataTable, PageFoot, PageHead, Stat } from '../ui';
 
@@ -20,7 +20,7 @@ export function Passport({ actor }: { actor: Actor }) {
     <>
       <PageHead
         title="Assessment and learning passport"
-        sub={`${p.student.name} · Year ${p.student.classId} · ${p.subject} · Teacher-reviewed evidence`}
+        sub={`${p.student.name} · ${className(p.student.classId)} · ${p.subject} · Teacher-reviewed evidence`}
         spec="PHASE 2 · FR-L01–L04"
         actions={p.approvedBy
           ? <Button variant="secondary" icon={EyeOff} onClick={() => { staff.setPassportApproval(actor, p.studentId, false); toast('Hidden from family view'); }}>Withdraw from family view</Button>

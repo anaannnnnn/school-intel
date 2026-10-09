@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BellRing, Languages, LogOut, Moon, Palette as PaletteIcon, RotateCcw } from 'lucide-react';
 import { Button, Callout, Card, CardHeader, Segmented, SelectField, Switch, usePalette, useToast } from '@school-intel/ui';
-import { family, resetDemo, setSession } from '@school-intel/api';
+import { family, resetData, setSession } from '@school-intel/api';
 import type { FamilyPreferences } from '@school-intel/contracts';
 import { PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
@@ -60,9 +60,9 @@ export function Settings() {
       <Button block onClick={() => { family.savePreferences(actor, p); toast('Preferences saved'); }}>Save preferences</Button>
 
       <Card>
-        <CardHeader icon={RotateCcw} tone="neutral" title="Demonstration" sub="This app uses fictional data stored in this browser." />
+        <CardHeader icon={RotateCcw} tone="neutral" title="Data" sub="Changes you make are saved in this browser until the school database is connected." />
         <div className="stack-sm">
-          <Button variant="secondary" icon={RotateCcw} onClick={() => { resetDemo(); toast('Demo data reset'); }}>Reset demo data</Button>
+          <Button variant="secondary" icon={RotateCcw} onClick={() => { resetData(); toast('School data reloaded'); }}>Reload school data</Button>
           <Button variant="ghost" icon={LogOut} onClick={() => setSession('family', null)}>Sign out</Button>
         </div>
       </Card>

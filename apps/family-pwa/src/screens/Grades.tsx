@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ChevronRight, GraduationCap } from 'lucide-react';
 import { Card, Chip, EmptyState, formatDate, type Tone } from '@school-intel/ui';
-import { learn, useDb } from '@school-intel/api';
+import { className, learn, useDb } from '@school-intel/api';
 import { ChildSwitcher, PageHeader } from '../Shell';
 import { useFamily } from '../family-context';
 import { Ring, SectionTitle, SubjectTile, scoreTone } from '../kit';
@@ -25,7 +25,7 @@ export function Grades() {
 
   return (
     <>
-      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · Year ${child.classId}` : 'Released results'} title="Subject grades" />
+      <PageHeader back={isParent ? '/progress' : true} eyebrow={isParent ? `${child.firstName} · ${className(child.classId)}` : 'Released results'} title="Subject grades" />
       {isParent && <ChildSwitcher />}
 
       {withResults.length === 0 ? (

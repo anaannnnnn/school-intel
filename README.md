@@ -4,12 +4,15 @@ DevX School Intelligence: a connected school operations and student-support plat
 
 ## Project status
 
-An interactive prototype of both surfaces is implemented and runs as static files:
+One web app for a school. The start page asks whether you are a **student, parent or teacher** (and remembers the answer), then you sign in with a login ID and passcode. After that you land in the right workspace:
 
-- **Family app** (`apps/family-pwa`): an installable mobile web app (PWA) for parents and students.
-- **Staff workspace** (`apps/staff-web`): the school CRM for teachers, pastoral and safeguarding staff, the school office, IT and leadership. It works on desktop, tablet and phone.
+- **Family workspace** (`apps/family-pwa`): students and parents. Installable, works on a phone and has a side rail on desktop.
+- **Staff workspace** (`apps/staff-web`): teachers, pastoral and safeguarding staff, the school office, IT and leadership.
+- **Start page and sign-in** (`apps/web`): role choice, login, and loading the right workspace.
 
-Both apps use `services/api`, an in-browser demo API with fictional seed data. It enforces the PRD's permission rules and workflow states and writes an audit log. It is **not** a production backend. There are no real SIS/LMS connectors, no AI provider and no authentication service.
+The data comes from a SQLite file, [`apps/public/data/school.db`](apps/public/data/school.db), which is read in the browser when the app starts (sql.js). Nothing needs to run on the server: any host that can serve static files works. Changes people make (marks, registers, requests) are saved in that browser until a backend is added. A new release of `school.db` replaces them.
+
+`services/api` enforces the PRD's permission rules and workflow states, and writes an audit log. It is **not** a production backend: there are no SIS/LMS connectors, no real AI provider and no server-side authentication.
 
 ### Learning, assessment and records
 
@@ -23,45 +26,57 @@ Both apps use `services/api`, an in-browser demo API with fictional seed data. I
 | Attendance | Lesson-by-lesson marks, term calendar, attendance rate | Lesson registers (present, late, absent, excused); families of absent students are notified on submit |
 | Discipline | Merits and behaviour notes | Merits and demerits with family notification; class totals only, no individual rankings |
 
-The demo AI (`services/api/src/ai.ts`) is a deterministic, rules-based stand-in for the school's approved model: keyword-grounded hints, rubric keyword matching with evidence sentences, template question generation and blueprint paper building. It never calls the network. The guardrails are the product rules: no generative study tools below Year 7, hints rather than answers, teacher confirmation before any mark is released, and every AI draft labelled and reviewed.
+The built-in AI (`services/api/src/ai.ts`) is a deterministic, rules-based stand-in for the school's approved model: keyword-grounded hints, rubric keyword matching with evidence sentences, template question generation and blueprint paper building. It never calls the network. The guardrails are the product rules: no generative study tools below Year 7, hints rather than answers, teacher confirmation before any mark is released, and every AI draft labelled and reviewed.
 
 ## Run it
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173  (entry page → family app or staff workspace)
-npm test           # PRD acceptance scenarios and learning rules against the demo API
+npm run dev        # http://localhost:5173
+npm test           # permission rules, learning rules, login, and a check that school.db matches the seed
 npm run build      # typecheck + static build in dist/
 npm run preview    # serve the build at http://localhost:4173
+npm run db:build   # rebuild apps/public/data/school.db from the seed data
 ```
 
-Both apps are served from one origin, so they share the demo data store in your browser. Open the family app on a phone-sized window and the staff workspace in another tab. A request a guardian submits appears in the office queue, and an office decision appears in the family app.
+## Accounts and the database
 
-### Demo sign-in
+`school.db` holds:
 
-| Surface | How |
+| Table or view | What it is |
 | --- | --- |
-| Parent | "I'm a parent or guardian", invitation code `482106` (Fatima Ahmed, children Sara 7A and Adam 4B) |
-| Student | "I'm a student" (Sara Ahmed, Year 7A): try the open quizzes, the timed science test, a past paper, the study helper and the written task |
-| Staff | Pick a staff member, then any six-digit MFA code |
+| `school_document` | The whole school (people, classes, subjects, materials, records) as one JSON document. This is what the app loads. |
+| `accounts` | Logins: `login_id`, `role` (student, parent, teacher, admin), the person they belong to, and a scrypt `password_hash`. 231 logins. |
+| `courses` | The syllabus catalogue: 142 CBSE, ICSE/ISC and Cambridge courses with topics and source links. |
+| `meta` | Schema and data versions. |
+| `students`, `staff`, `guardians`, `classes`, `subjects`, `topics`, `materials`, `questions` | Read-only views over the document for browsing with any SQLite tool. |
 
-| Staff member | Role | Try |
+Sign in with a login ID from [docs/accounts.md](docs/accounts.md). The **initial passcode for every seeded login is `Horizon-2026`**. These are sample accounts: set `SCHOOL_INITIAL_PASSCODE` when running `npm run db:build` to use another one, and give people their own passcodes before using real records. First-time parents can also use the invitation code `482106` (Fatima Ahmed, parent of Sara and Adam).
+
+Edit the seed in `services/api/src` and run `npm run db:build`; a test fails if the committed file is out of date. The build is deterministic, so the file only changes when the data does.
+
+Because the database file is served to the browser, **anyone who can open the site can download it**. Passcodes are hashed, but a copy can be attacked offline, so this setup is for sample data and pilots only. Moving to real records needs a server-side API, a database, proper authentication and backups.
+
+Sample logins to try:
+
+| Role | Login ID | Try |
 | --- | --- | --- |
-| Nadia Farooq | Maths teacher, 7A tutor | Lessons & registers; question bank (approve AI drafts); build a quiz; gradebook; award merits; Teacher Copilot |
-| Priya Menon | Science teacher | Confirm AI-suggested marks for today's particles test, then release results; answer escalated student questions |
-| James Carter | English teacher | Marking queue for three persuasive paragraphs (evidence highlighted per rubric criterion) |
-| Huda Al Mansoori | Arabic teacher | Bilingual vocabulary materials and quiz |
-| Aisha Rahman | Pastoral lead, safeguarding lead | Support case SC-1042; restricted concern SG-026 |
-| Daniel Reed | PE teacher, pastoral | Assigned case SC-1043 |
-| Layla Haddad | Office, attendance officer | Family requests inbox; absence explanations; guardian revocation |
-| Karim Mansour | School IT | Connector health, mapping exceptions, failure simulation (LMS outage, stale bus, safeguarding delivery failure) |
-| Samira Qureshi | Principal | Aggregate leadership measures and audit log |
+| Student | `stu.sara` | Year 7A: the open quizzes, the timed science test, a past paper, the study helper and the written task |
+| Student | `stu.cbse9.01` | Class 9 CBSE: the real Class 9 subjects and chapters |
+| Parent | `par.fatima` | Children Sara (7A) and Adam (4B) |
+| Teacher | `tch.nadia` | Maths teacher and Year 7 tutor: registers, question bank, quizzes, gradebook, merits |
+| Teacher | `tch.priya` | Science: confirm AI-suggested marks for today's test, then release results |
+| Teacher | `tch.james` | English: marking queue for three persuasive paragraphs |
+| Staff | `staff.aisha` | Pastoral lead and safeguarding lead: support case SC-1042, restricted concern SG-026 |
+| Staff | `staff.layla` | Office and attendance: family requests, absence explanations |
+| Staff | `staff.karim` | School IT: connector health, mapping exceptions, failure simulation |
+| Staff | `staff.samira` | Principal: aggregate measures and the audit log |
 
-Each role only sees the areas and records it is authorised for. Visiting a restricted area shows the "This record is restricted" state and is recorded in the audit log. "Reset demo data" in either app restores the 6 October 2026 scenario.
+Each role only sees the areas and records it is authorised for. Visiting a restricted area shows the "This record is restricted" state and is recorded in the audit log. "Reload school data" in either workspace discards changes saved in the browser.
 
 ### Grades 9 to 13: real syllabus data
 
-Besides the Year 7A scenario, the demo has classes for CBSE (Class 9-12), ICSE (9-10), ISC (11-12), Cambridge IGCSE and O Level (Year 10-11) and AS and A Level (Year 12-13). Subjects, chapters and topics are the published syllabus titles; the students, parents and teachers are invented. Use **Sign in with a login ID** (for example `stu.cbse9.01`, passcode `Demo-2026`) in either app. See [docs/curriculum-data.md](docs/curriculum-data.md) for sources, licences and gaps, and [docs/demo-accounts.md](docs/demo-accounts.md) for every login ID.
+Besides the Year 7A scenario, the school has classes for CBSE (Class 9-12), ICSE (9-10), ISC (11-12), Cambridge IGCSE and O Level (Year 10-11) and AS and A Level (Year 12-13). Subjects, chapters and topics are the published syllabus titles; the students, parents and teachers are invented. See [docs/curriculum-data.md](docs/curriculum-data.md) for sources, licences and gaps.
 
 ## Product and design
 
@@ -88,16 +103,19 @@ Homework balancing, behaviour and confidential reporting, learning passports, ex
 ## Implementation structure
 
 ```text
-apps/index.html       Product entry page
-apps/family-pwa/      Parent and student mobile web app (PWA manifest + offline shell service worker in apps/public/family-pwa)
-apps/staff-web/       Staff workspace / school CRM
-services/api/         Demo API: seed data, permission checks, workflows, audit (browser storage); acceptance tests
+apps/index.html       The single page the web app is served from
+apps/web/             Start page (role choice), sign-in, and loading of the right workspace
+apps/family-pwa/      Student and parent workspace (Pebble kit; side rail on desktop)
+apps/staff-web/       Teacher and staff workspace / school CRM (Ledger kit)
+apps/public/          Static files: manifest, service worker, icons, data/school.db
+scripts/build-db.ts   Builds school.db from the seed data
+services/api/         Seed data, database loader, permission checks, workflows, audit; tests
 packages/ui/          Design tokens and shared accessible components
 packages/contracts/   Shared data contracts (PRD §16 record contract)
-docs/                 Requirements, design handoff and delivery plan
+docs/                 Requirements, design handoff, delivery plan, curriculum data, accounts
 ```
 
-Stack: React 19, TypeScript, Vite, React Router (hash routing so the build works on any static host), lucide icons, self-hosted IBM Plex Sans/Mono and Nunito fonts.
+Stack: React 19, TypeScript, Vite, React Router (hash routing so the build works on any static host), SQLite read in the browser with sql.js, scrypt passcode hashes, lucide icons, self-hosted Fraunces, Figtree, IBM Plex Sans/Mono and Nunito fonts.
 
 ## Design
 

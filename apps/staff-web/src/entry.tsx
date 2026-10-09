@@ -1,5 +1,4 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+// Loaded on demand once a teacher or staff member has signed in (see apps/family-pwa/src/entry.tsx).
 import { applyPalette } from '@school-intel/ui';
 import { App } from './App';
 import { STAFF_PALETTES } from './palettes';
@@ -13,8 +12,4 @@ import './staff.css';
 
 applyPalette('staff', STAFF_PALETTES);
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+export default App;

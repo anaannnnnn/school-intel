@@ -4,7 +4,6 @@ import { ToastProvider } from '@school-intel/ui';
 import { family, useDb, useSession } from '@school-intel/api';
 import { FamilyProvider } from './family-context';
 import { Shell } from './Shell';
-import { SignIn } from './screens/SignIn';
 import { ParentToday } from './screens/ParentToday';
 import { StudentToday } from './screens/StudentToday';
 import { Children } from './screens/Children';
@@ -53,11 +52,7 @@ export function App() {
   return (
     <ToastProvider>
       <HashRouter>
-        {!actor ? (
-          <Routes>
-            <Route path="*" element={<SignIn />} />
-          </Routes>
-        ) : (
+        {!actor ? null : (
           <FamilyProvider actor={actor}>
             <Routes>
               <Route element={<Shell />}>

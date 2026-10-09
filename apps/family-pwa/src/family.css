@@ -472,3 +472,72 @@ a.card:hover, button.card:hover { box-shadow: var(--shadow); }
 :root[data-palette='night'] .btn-danger { --btn-fg: #1a0505; }
 
 .card.card-flush { padding: 0; }
+
+/* ---------- Desktop and tablet: the bottom bar becomes a side rail ---------- */
+.rail-brand { display: none; }
+@media (min-width: 1024px) {
+  .app {
+    max-width: 1320px;
+    display: grid;
+    grid-template-columns: 272px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    padding-block-end: 0;
+    box-shadow: none;
+    --toast-offset: 24px;
+  }
+  .app[data-focus] { grid-template-columns: minmax(0, 1fr); }
+  .skip-link { grid-column: 1 / -1; }
+  .tabbar {
+    position: sticky;
+    inset: 0 auto auto 0;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    height: 100dvh;
+    max-width: none;
+    margin: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 4px;
+    padding: 28px 16px;
+    border-block-start: 0;
+    border-inline-end: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-surface) 70%, var(--color-canvas));
+  }
+  .rail-brand { display: flex; align-items: center; gap: 12px; padding: 0 10px 24px; }
+  .rail-mark { display: inline-flex; align-items: flex-end; gap: 3px; height: 30px; }
+  .rail-mark i { display: block; width: 11px; border-radius: 99px 99px 2px 2px; background: var(--color-brand); }
+  .rail-mark i:nth-child(1) { height: 18px; opacity: 0.55; }
+  .rail-mark i:nth-child(2) { height: 30px; }
+  .rail-mark i:nth-child(3) { height: 23px; opacity: 0.8; }
+  .rail-name { display: grid; line-height: 1.15; }
+  .rail-name strong { font-size: 16px; font-weight: 900; letter-spacing: -0.01em; }
+  .rail-name small { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); }
+  .tab {
+    flex: none;
+    max-width: none;
+    flex-direction: row;
+    gap: 14px;
+    padding: 6px 10px;
+    border-radius: 18px;
+    font-size: 15px;
+    transition: background var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+  }
+  .tab:hover { background: var(--color-subtle); }
+  .tab:hover .tab-icon { transform: scale(1.06); }
+  .tab-icon { width: 40px; height: 40px; border-radius: 14px; transition: transform var(--dur) var(--ease-out), background var(--dur) var(--ease-out); }
+  .tab.is-active { background: color-mix(in srgb, var(--color-brand) 10%, transparent); }
+  .tab.is-active .tab-icon { background: var(--color-brand); color: var(--color-on-brand); }
+  .topbar { grid-column: 2; padding: 22px 40px 10px; }
+  .content { grid-column: 2; width: 100%; max-width: 940px; margin-inline: auto; padding: 8px 40px 56px; gap: 20px; }
+  .who { padding: 4px 14px 4px 4px; border-radius: 999px; transition: background var(--dur) var(--ease-out); }
+  .who:hover { background: var(--color-subtle); }
+}
+
+/* ---------- Polish shared by every screen ---------- */
+@media (hover: hover) {
+  .card { transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+  a.card:hover, button.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md, 0 10px 28px color-mix(in srgb, var(--color-ink) 12%, transparent)); }
+}
+:where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid color-mix(in srgb, var(--color-brand) 55%, transparent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .content, .card, .tab, .tab-icon { animation: none !important; transition: none !important; } }
