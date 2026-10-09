@@ -1,0 +1,142 @@
+/*
+ * Motion layer for the student, parent and staff workspaces. It is loaded after the Horizon kit and
+ * only adds movement: nothing here changes layout. The block at the end switches all of it off for
+ * people who ask their device for reduced motion.
+ */
+
+@property --p { syntax: '<number>'; inherits: false; initial-value: 0; }
+
+:root {
+  --spring: cubic-bezier(0.34, 1.5, 0.5, 1);
+  --snap: cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+/* ---------- Screen changes: direction-aware, then the blocks rise one after another ---------- */
+@keyframes mo-fwd { from { opacity: 0; transform: translate3d(28px, 0, 0); } }
+@keyframes mo-back { from { opacity: 0; transform: translate3d(-28px, 0, 0); } }
+@keyframes mo-fade { from { opacity: 0; } }
+@keyframes mo-rise { from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.985); } }
+main[data-dir='forward'] { animation: mo-fwd 0.4s var(--snap) backwards; }
+main[data-dir='back'] { animation: mo-back 0.4s var(--snap) backwards; }
+main[data-dir='tab'] { animation: mo-fade 0.28s ease-out backwards; }
+.content > *, .page > * { animation: mo-rise 0.55s var(--snap) backwards; animation-delay: 60ms; }
+.content > :nth-child(2), .page > :nth-child(2) { animation-delay: 115ms; }
+.content > :nth-child(3), .page > :nth-child(3) { animation-delay: 170ms; }
+.content > :nth-child(4), .page > :nth-child(4) { animation-delay: 225ms; }
+.content > :nth-child(5), .page > :nth-child(5) { animation-delay: 280ms; }
+.content > :nth-child(6), .page > :nth-child(6) { animation-delay: 335ms; }
+.content > :nth-child(7), .page > :nth-child(7) { animation-delay: 390ms; }
+.content > :nth-child(8), .page > :nth-child(8) { animation-delay: 445ms; }
+.content > :nth-child(9), .page > :nth-child(9) { animation-delay: 500ms; }
+.content > :nth-child(10), .page > :nth-child(10) { animation-delay: 555ms; }
+.content > :nth-child(n + 11), .page > :nth-child(n + 11) { animation-delay: 560ms; }
+
+/* Blocks further down the screen wait until they scroll into view. */
+[data-reveal='pending'] { animation: none !important; opacity: 0; transform: translate3d(0, 22px, 0) scale(0.985); }
+[data-reveal='in'] { animation: mo-rise 0.6s var(--snap) backwards !important; animation-delay: 0ms !important; }
+
+/* ---------- Top bar ---------- */
+.topbar, .hz-top { transition: box-shadow 0.3s ease, background-color 0.3s ease; }
+html[data-scrolled] .topbar, html[data-scrolled] .hz-top { box-shadow: 0 1px 0 var(--color-border), 0 12px 24px -18px rgb(20 35 31 / 0.5); background: color-mix(in srgb, var(--color-canvas) 94%, transparent); }
+.hz-title strong { transition: opacity 0.2s; }
+
+/* ---------- Tab bars: a sliding pill, and a bar that steps aside while you read ---------- */
+.tabbar, .hz-tabs { transition: transform 0.45s var(--snap), opacity 0.3s; }
+html[data-nav-hidden] .tabbar, html[data-nav-hidden] .hz-tabs { transform: translate3d(0, calc(100% + 28px), 0); opacity: 0; pointer-events: none; }
+.tab, .hz-tab { position: relative; z-index: 1; }
+.glider { position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 0; width: var(--gw, 0); height: var(--gh, 0); border-radius: 18px 18px 9px 9px; background: var(--color-brand); box-shadow: 0 10px 16px -10px var(--color-brand); opacity: 0; transform: translate3d(var(--gx, 0), var(--gy, 0), 0); pointer-events: none; }
+[dir='rtl'] .glider { inset-inline-start: auto; inset-inline-end: 0; }
+[data-glide] > .glider { opacity: 1; }
+[data-glide='ready'] > .glider { transition: transform 0.55s var(--spring), width 0.4s var(--snap); }
+[data-glide] .tab.is-active .tab-icon, [data-glide] .hz-tab.is-active .hz-tab-icon { background: transparent; box-shadow: none; transform: none; }
+@keyframes mo-pop { 0% { transform: scale(0.6) rotate(-12deg); } 55% { transform: scale(1.22) rotate(6deg); } 100% { transform: none; } }
+.tab.is-active .tab-icon svg, .hz-tab.is-active .hz-tab-icon svg { animation: mo-pop 0.5s var(--snap) 0.08s backwards; }
+.hz-count { animation: mo-pop 0.5s var(--snap) 0.3s backwards; }
+
+/* Bell: a small swing on arrival when there is something new, and a soft ping on the dot. */
+@keyframes mo-ring { 0%, 100% { transform: none; } 15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } }
+@keyframes mo-ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand) 55%, transparent); } 80%, 100% { box-shadow: 0 0 0 9px transparent; } }
+.icon-btn:has(.badge-dot) svg, .hz-round:has(.hz-dot) svg { transform-origin: 50% 12%; animation: mo-ring 1.1s var(--snap) 0.8s 1 backwards; }
+.badge-dot, .hz-dot { animation: mo-ping 2.4s ease-out 1s infinite; }
+
+/* ---------- Numbers, rings and bars fill in ---------- */
+@keyframes ring-in { from { --p: 0; } }
+.ring { animation: ring-in 1.2s 0.15s var(--snap) backwards; transition: --p 0.8s var(--snap); }
+@keyframes bar-grow { from { width: 0; } }
+@keyframes bar-sheen { from { transform: translateX(-120%); } to { transform: translateX(260%); } }
+.progress > span { position: relative; overflow: hidden; animation: bar-grow 0.95s 0.2s var(--snap) backwards; transition: width 0.6s var(--snap); }
+.progress > span::after { content: ''; position: absolute; inset: 0; width: 45%; background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.5), transparent); animation: bar-sheen 1.1s 0.9s ease-out 1 backwards; }
+@keyframes bar-up { from { transform: scaleY(0.05); } }
+.hero-bars i, .c1-daybar i { transform-origin: bottom; animation: bar-up 0.7s calc(0.2s + var(--i, 0) * 55ms) var(--spring) backwards; }
+.c1-daybar i { transform-origin: left; animation-name: bar-across; }
+@keyframes bar-across { from { transform: scaleX(0.2); opacity: 0; } }
+
+/* The lesson that is happening now breathes. */
+@keyframes mo-live { 0%, 100% { box-shadow: 0 0 0 2px var(--color-brand), 0 0 0 0 color-mix(in srgb, var(--color-brand) 40%, transparent), var(--shadow-sm); } 50% { box-shadow: 0 0 0 2px var(--color-brand), 0 0 0 8px transparent, var(--shadow-sm); } }
+.lesson[data-state='now'] { animation: mo-live 2.6s ease-out 0.8s infinite; }
+.c1-daybar i[data-state='now'] { animation: mo-live 2.6s ease-out 1s infinite, bar-across 0.7s backwards; }
+
+/* ---------- Touch feedback ---------- */
+@media (hover: hover) {
+  .prow:hover, .subject-tile:hover, .hz-tile:hover { translate: 0 -2px; }
+}
+.prow, .subject-tile, .hz-tile { transition-property: box-shadow, transform, translate, background-color; }
+.prow .chev { transition: transform 0.3s var(--spring); }
+.prow:active .chev { transform: translateX(4px); }
+.btn { position: relative; overflow: hidden; isolation: isolate; }
+@keyframes mo-ripple { from { transform: scale(0); opacity: 0.35; } to { transform: scale(1); opacity: 0; } }
+.ripple { position: absolute; z-index: -1; border-radius: 50%; background: currentColor; pointer-events: none; animation: mo-ripple 0.65s ease-out forwards; }
+.btn-secondary .ripple, .btn-ghost .ripple, .btn-tonal .ripple { background: var(--color-brand); }
+.option { transition: border-color 0.2s, background-color 0.2s, transform 0.3s var(--spring), box-shadow 0.2s; }
+.option:active { transform: scale(0.98); }
+@keyframes mo-select { 0% { transform: scale(1); } 40% { transform: scale(1.025); } 100% { transform: scale(1); } }
+.option[aria-pressed='true'] { animation: mo-select 0.4s var(--snap); }
+.option[aria-pressed='true'] .letter { animation: mo-pop 0.45s var(--snap); }
+.switch input { transition: background-color 0.25s; }
+.switch input::after { transition: transform 0.4s var(--spring), width 0.2s; }
+.switch input:active::after { width: 25px; }
+.switch input:checked:active::after { transform: translateX(13px); }
+
+/* ---------- Sheets and toasts: springier, with an exit ---------- */
+@keyframes mo-sheet-in { from { transform: translate3d(0, 100%, 0); } 60% { transform: translate3d(0, -6px, 0); } to { transform: none; } }
+@keyframes mo-sheet-out { to { transform: translate3d(0, 100%, 0); } }
+@keyframes mo-scrim-out { to { opacity: 0; } }
+.sheet-scrim { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.sheet { animation: mo-sheet-in 0.5s var(--snap) both; }
+.sheet-scrim[data-closing] { animation: mo-scrim-out 0.22s ease-in forwards; pointer-events: none; }
+.sheet-scrim[data-closing] .sheet { animation: mo-sheet-out 0.22s ease-in forwards; }
+.sheet-body > *, .hz-group, .hz-notes li, .hz-results li { animation: mo-rise 0.5s var(--snap) backwards; }
+.hz-group:nth-child(2) { animation-delay: 70ms; } .hz-group:nth-child(3) { animation-delay: 140ms; } .hz-group:nth-child(4) { animation-delay: 210ms; } .hz-group:nth-child(5) { animation-delay: 280ms; }
+.hz-tile { animation: mo-pop-in 0.45s var(--snap) backwards; animation-delay: calc(var(--i, 0) * 28ms + 120ms); }
+@keyframes mo-pop-in { from { opacity: 0; transform: scale(0.85) translate3d(0, 8px, 0); } }
+.toast { animation: mo-toast 0.5s var(--spring) backwards; }
+@keyframes mo-toast { from { opacity: 0; transform: translate3d(0, 24px, 0) scale(0.9); } }
+.skeleton, .loading { background: linear-gradient(100deg, var(--color-subtle) 30%, color-mix(in srgb, var(--color-subtle) 50%, var(--color-surface)) 50%, var(--color-subtle) 70%) 0 0 / 200% 100%; animation: mo-shimmer 1.4s linear infinite; }
+@keyframes mo-shimmer { to { background-position: -200% 0; } }
+
+/* ---------- Good news ---------- */
+.confetti { position: fixed; inset-inline: 0; inset-block-start: 22dvh; z-index: 90; height: 0; pointer-events: none; display: grid; place-items: center; }
+.confetti i { position: absolute; width: 9px; height: 14px; border-radius: 2px; background: var(--c); opacity: 0; animation: mo-confetti var(--dur) var(--delay) cubic-bezier(0.15, 0.7, 0.35, 1) forwards; }
+.confetti i[data-shape='1'] { width: 10px; height: 10px; border-radius: 50%; }
+.confetti i[data-shape='2'] { width: 5px; height: 18px; border-radius: 3px; }
+@keyframes mo-confetti {
+  0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); }
+  55% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--dx), calc(var(--dy) + 340px), 0) rotate(var(--rot)); }
+}
+@keyframes mo-score-pop { 0% { transform: scale(0.7); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: none; opacity: 1; } }
+.score-hero .ring { animation: ring-in 1.4s 0.2s var(--snap) backwards, mo-score-pop 0.7s var(--spring) backwards; }
+
+/* ---------- Chat bubbles, tab strips, chips ---------- */
+@keyframes mo-bubble { from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.92); } }
+.bubble { animation: mo-bubble 0.45s var(--spring) backwards; transform-origin: 0 100%; }
+.bubble-me { transform-origin: 100% 100%; }
+[role='tablist'] button[aria-selected='true'], .segmented button[aria-checked='true'] { transition: background-color 0.25s, color 0.25s, box-shadow 0.25s; }
+
+/* ---------- Reduced motion: everything above stands still ---------- */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+  .confetti, .glider, .ripple { display: none; }
+  html[data-nav-hidden] .tabbar, html[data-nav-hidden] .hz-tabs { transform: none; opacity: 1; pointer-events: auto; }
+  .prow:hover, .subject-tile:hover, .hz-tile:hover { translate: none; }
+}

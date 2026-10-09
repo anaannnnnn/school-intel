@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import {
   Award,
   Bell,
@@ -33,7 +33,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { Avatar, BottomSheet, Switch, cx, formatDate, formatTime, usePalette } from '@school-intel/ui';
+import { Avatar, BottomSheet, Switch, cx, formatDate, formatTime, useGlider, useMotion, usePalette, useRouteDirection } from '@school-intel/ui';
 import { STAFF_PALETTES } from './palettes';
 import { className, DEMO_DATE, family, resetData, setSession, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
@@ -127,6 +127,11 @@ export function Layout({ actor }: { actor: Actor }) {
   );
   const inTabs = tabs.some((t) => t.to === `/${section}`);
 
+  const dir = useRouteDirection(pathname, useNavigationType());
+  const nav = useRef<HTMLElement>(null);
+  useGlider(nav, '.hz-tab.is-active .hz-tab-icon', `${section}|${tabs.length}`);
+  useMotion(pathname);
+
   useEffect(() => {
     setSheet(null);
     window.scrollTo({ top: 0 });
@@ -163,12 +168,13 @@ export function Layout({ actor }: { actor: Actor }) {
       </header>
 
       <div className="hz-view">
-        <main id="main" className="page" key={pathname} data-db={db.version}>
+        <main id="main" className="page" key={pathname} data-dir={dir} data-db={db.version}>
           <Outlet />
         </main>
       </div>
 
-      <nav className="hz-tabs" aria-label="Primary">
+      <nav ref={nav} className="hz-tabs" aria-label="Primary">
+        <span className="glider" aria-hidden />
         {tabs.map((t) => {
           const n = badge(t);
           return (
@@ -198,10 +204,10 @@ export function Layout({ actor }: { actor: Actor }) {
             <section className="hz-group" key={g.label} aria-label={g.label}>
               <h3>{g.label}</h3>
               <div className="hz-grid">
-                {items.map((it) => {
+                {items.map((it, i) => {
                   const n = badge(it);
                   return (
-                    <Link key={it.to} to={it.to} className="hz-tile" onClick={close}>
+                    <Link key={it.to} to={it.to} className="hz-tile" style={{ ['--i' as string]: i }} onClick={close}>
                       <span className="hz-tile-icon" aria-hidden>
                         <it.icon size={22} />
                         {n > 0 && <span className="hz-count" data-tone={it.alert ? 'alert' : undefined}>{n > 9 ? '9+' : n}</span>}

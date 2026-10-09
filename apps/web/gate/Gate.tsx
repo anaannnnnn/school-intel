@@ -113,7 +113,17 @@ function Welcome({ onPick }: { onPick: (r: Role) => void }) {
       <ul className="gt-roles" role="list" aria-label="Choose your role">
         {ROLES.map((r, i) => (
           <li key={r.id} style={{ ['--i' as string]: i }}>
-            <button type="button" className="gt-role" data-role={r.id} onClick={() => onPick(r.id)}>
+            <button
+              type="button"
+              className="gt-role"
+              data-role={r.id}
+              onClick={() => onPick(r.id)}
+              onPointerMove={(e) => {
+                const b = e.currentTarget.getBoundingClientRect();
+                e.currentTarget.style.setProperty('--mx', `${e.clientX - b.left}px`);
+                e.currentTarget.style.setProperty('--my', `${e.clientY - b.top}px`);
+              }}
+            >
               <span className="gt-role-art"><RoleArt role={r.id} /></span>
               <span className="gt-role-body">
                 <span className="gt-role-eyebrow">I am a</span>
@@ -314,7 +324,10 @@ function SignIn({ role, onDone }: { role: Role; onDone: (a: Actor) => void }) {
 function Welcomed({ name }: { name: string }) {
   return (
     <section className="gt-welcomed" role="status" aria-live="polite">
-      <span className="gt-check" aria-hidden><Check size={34} strokeWidth={3} /></span>
+      <span className="gt-check" aria-hidden>
+        <Check size={34} strokeWidth={3} />
+        {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ ['--a' as string]: `${i * 36}deg` }} />)}
+      </span>
       <h2>{name ? `Welcome, ${name.split(' ')[0]}` : 'Welcome'}</h2>
       <p>Opening your workspace…</p>
     </section>

@@ -2,6 +2,7 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/manrope';
 import './tokens.css';
 import './components.css';
+import { useExit } from './motion';
 
 import {
   createContext,
@@ -23,6 +24,7 @@ export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'rest
 
 const cx = (...c: (string | false | undefined | null)[]) => c.filter(Boolean).join(' ');
 export { cx };
+export { Confetti, haptic, reducedMotion, useExit, useGlider, useMotion, useRouteDirection, type RouteDirection } from './motion';
 
 // ---------- Buttons ----------
 
@@ -445,6 +447,7 @@ export function LoginIdPanel({ accounts, passcode, onSubmit, busy }: { accounts:
 export function BottomSheet({ open, onClose, title, children, tall }: { open: boolean; onClose: () => void; title: string; children: ReactNode; tall?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; dy: number } | null>(null);
+  const { mounted, closing } = useExit(open);
 
   useEffect(() => {
     if (!open) return;
@@ -462,7 +465,7 @@ export function BottomSheet({ open, onClose, title, children, tall }: { open: bo
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
   const move = (e: React.PointerEvent) => {
     if (!drag.current || !ref.current) return;
     drag.current.dy = Math.max(0, e.clientY - drag.current.y);
@@ -477,7 +480,7 @@ export function BottomSheet({ open, onClose, title, children, tall }: { open: bo
     else ref.current.style.transform = '';
   };
   return (
-    <div className="sheet-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="sheet-scrim" data-closing={closing || undefined} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div ref={ref} className="sheet" data-tall={tall || undefined} role="dialog" aria-modal="true" aria-label={title}>
         <div
           className="sheet-grab"

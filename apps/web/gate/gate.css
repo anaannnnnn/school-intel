@@ -251,3 +251,26 @@
 @media (prefers-reduced-motion: reduce) {
   .gt *, .gt *::before, .gt *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- Extra motion ---------- */
+.gt-role { position: relative; overflow: hidden; isolation: isolate; }
+.gt-role::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--gt-role) 26%, transparent), transparent 70%); opacity: 0; transition: opacity 0.3s; }
+.gt-role:hover::before { opacity: 1; }
+.gt-role:active { transition-duration: 0.1s; }
+.gt-check { position: relative; }
+.gt-check svg { stroke-dasharray: 40; stroke-dashoffset: 40; animation: gt-draw-check 0.5s 0.35s var(--gt-ease) forwards; }
+@keyframes gt-draw-check { to { stroke-dashoffset: 0; } }
+.gt-check i { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: var(--gt-sun); opacity: 0; animation: gt-burst 0.9s 0.3s ease-out forwards; }
+.gt-check i:nth-of-type(3n) { background: var(--gt-coral); width: 6px; height: 6px; }
+.gt-check i:nth-of-type(3n + 1) { background: var(--gt-sea); }
+@keyframes gt-burst { 0% { opacity: 1; transform: rotate(var(--a)) translateY(-36px) scale(0.6); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-78px) scale(1); } }
+.gt-field > label { transition: color 0.2s; }
+.gt-field:focus-within > label { color: var(--gt-role); }
+.gt-primary { position: relative; overflow: hidden; }
+.gt-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.28) 50%, transparent 70%); transform: translateX(-120%); }
+.gt-primary:hover:not(:disabled)::after { transform: translateX(120%); transition: transform 0.7s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .gt-check i { display: none; }
+  .gt-check svg { stroke-dashoffset: 0; animation: none; }
+  .gt-role::before { display: none; }
+}

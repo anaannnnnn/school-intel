@@ -1,7 +1,7 @@
-import { useEffect, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { Bell, ChartNoAxesColumn, ChevronLeft, House, Inbox, LayoutGrid, Library, MessageCircleQuestion, MessageSquareText, PenLine, UserRound, type LucideIcon } from 'lucide-react';
-import { Avatar, cx } from '@school-intel/ui';
+import { Avatar, cx, useGlider, useMotion, useRouteDirection } from '@school-intel/ui';
 import { className, family, useDb } from '@school-intel/api';
 import { useFamily } from './family-context';
 import { greeting } from './screens/ParentToday';
@@ -31,6 +31,11 @@ export function Shell() {
   // Full-screen flows (test player) hide the tab bar so students are not pulled away mid-test.
   const focus = /^\/tests\/play\//.test(pathname);
 
+  const dir = useRouteDirection(pathname, useNavigationType());
+  const nav = useRef<HTMLElement>(null);
+  useGlider(nav, '.tab.is-active .tab-icon', `${pathname.split('/')[1]}|${focus}|${tabs.length}`);
+  useMotion(pathname);
+
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [pathname]);
@@ -51,10 +56,11 @@ export function Shell() {
           {unread > 0 && <span className="badge-dot" aria-hidden />}
         </Link>
       </header>
-      <main id="main" className="content" key={pathname}>
+      <main id="main" className="content" key={pathname} data-dir={dir}>
         <Outlet />
       </main>
-      <nav className="tabbar" aria-label="Primary" hidden={focus}>
+      <nav ref={nav} className="tabbar" aria-label="Primary" hidden={focus}>
+        <span className="glider" aria-hidden />
         {tabs.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} className={({ isActive }) => cx('tab', isActive && 'is-active')}>
             <span className="tab-icon" aria-hidden>

@@ -246,7 +246,7 @@ function HeroLesson({ lessons, current, next, firstTomorrow, tomorrow, name }: {
       <div className="c1-daybar" role="img" aria-label={`${done} of ${lessons.length} lessons done`}>
         {lessons.map((l) => {
           const fill = l.state === 'now' ? Math.round(((nowMin - minutesOf(l.start)) / Math.max(1, minutesOf(l.end) - minutesOf(l.start))) * 100) : undefined;
-          return <i key={l.id} data-state={l.state} style={fill !== undefined ? ({ ['--fill' as string]: `${fill}%` }) : undefined} title={`${l.start} ${l.subject.short}`} />;
+          return <i key={l.id} data-state={l.state} style={{ ['--i' as string]: lessons.indexOf(l), ...(fill !== undefined ? { ['--fill' as string]: `${fill}%` } : {}) }} title={`${l.start} ${l.subject.short}`} />;
         })}
       </div>
       <div className="c1-daybar-legend" aria-hidden>

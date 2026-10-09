@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CircleCheck, CircleX, Clock, Lightbulb, MessageCircleQuestion, NotebookPen, Target, TriangleAlert } from 'lucide-react';
-import { Button, Callout, Card, Chip, EmptyState, Steps, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
+import { Button, Callout, Card, Chip, Confetti, EmptyState, Steps, errorText, formatDate, formatTime, useToast } from '@school-intel/ui';
 import { learn, useDb } from '@school-intel/api';
 import type { AttemptItem, Question } from '@school-intel/contracts';
 import { PageHeader } from '../Shell';
@@ -103,6 +103,7 @@ export function Result() {
     <>
       <PageHeader back={back} eyebrow={`${subject.name} · ${kind.label}`} title={assessment.title} />
 
+      {s.pct >= 70 && <Confetti />}
       <section className="hero-card" aria-label="Your score">
         <div className="score-hero">
           <Ring pct={s.pct} size={96} />

@@ -9,6 +9,7 @@ import '@fontsource-variable/fraunces/full.css';
 import './family.css';
 import '../../../packages/ui/src/horizon.css';
 import './horizon.css';
+import '../../../packages/ui/src/motion.css';
 
 applyPalette('family', FAMILY_PALETTES);
 
