@@ -13,6 +13,8 @@ import '@fontsource-variable/fraunces/full.css';
 import './staff.css';
 import '../../../packages/ui/src/horizon.css';
 import './horizon.css';
+import '../../shared/shared.css';
+import './admin.css';
 import '../../../packages/ui/src/motion.css';
 
 applyPalette('staff', STAFF_PALETTES);

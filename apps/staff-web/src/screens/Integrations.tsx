@@ -84,7 +84,7 @@ export function Integrations({ actor }: { actor: Actor }) {
         title="Map SIS-2038"
         actions={<><Button variant="secondary" onClick={() => setMapping(null)}>Cancel</Button><Button onClick={() => { staff.resolveQuarantine(actor, mapping!, target); setMapping(null); toast('Mapped · 2 rows reprocessed'); }}>Map and reprocess</Button></>}
       >
-        <p>The SIS sent 2 rows for source ID SIS-2038 (Year 7A, enrolled 1 Oct). Choose the canonical student record. Affected records are previewed before reprocessing.</p>
+        <p>The SIS sent 2 rows for source ID SIS-2038 (Class 7A, enrolled 1 Oct). Choose the canonical student record. Affected records are previewed before reprocessing.</p>
         <SelectField label="Canonical student" value={target} onChange={(e) => setTarget(e.target.value)} options={staff.studentDirectory(actor).filter((s) => s.classId === '7A').map((s) => ({ value: s.id, label: `${s.name} · ${s.sisId}` }))} />
         <Callout tone="neutral">Preview: 1 attendance mark (6 Oct, present) and 1 assignment record will attach to the chosen student.</Callout>
       </Dialog>

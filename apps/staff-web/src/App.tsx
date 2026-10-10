@@ -39,6 +39,9 @@ import { Doubts } from './screens/Doubts';
 import { DoubtThread } from './screens/DoubtThread';
 import { Gradebook } from './screens/Gradebook';
 import { Discipline } from './screens/Discipline';
+import { Admin } from './screens/Admin';
+import { ChatScreen } from '../../shared/ChatScreen';
+import { AssistantWidget } from '../../shared/AssistantWidget';
 
 function Guard({ actor, area, children }: { actor: Actor; area: string; children: ReactNode }) {
   const allowed = staff.canAccessArea(actor, area);
@@ -62,9 +65,12 @@ export function App() {
     <ToastProvider>
       <HashRouter>
         {!valid ? null : (
+          <>
           <Routes>
             <Route element={<Layout actor={actor} />}>
-              <Route index element={<Navigate to="/overview" replace />} />
+              <Route index element={<Navigate to={staff.canAccessArea(actor, 'admin') ? '/admin' : '/overview'} replace />} />
+              <Route path="/admin" element={<Guard actor={actor} area="admin"><Admin actor={actor} /></Guard>} />
+              <Route path="/chat" element={<Guard actor={actor} area="chat"><ChatScreen actor={actor} /></Guard>} />
               <Route path="/overview" element={<Overview actor={actor} />} />
               <Route path="/copilot" element={<Guard actor={actor} area="copilot"><Copilot actor={actor} /></Guard>} />
               <Route path="/copilot/:id" element={<Guard actor={actor} area="copilot"><DraftReview actor={actor} /></Guard>} />
@@ -99,9 +105,11 @@ export function App() {
               <Route path="/doubts/:id" element={<Guard actor={actor} area="doubts"><DoubtThread actor={actor} /></Guard>} />
               <Route path="/gradebook" element={<Guard actor={actor} area="gradebook"><Gradebook actor={actor} /></Guard>} />
               <Route path="/discipline" element={<Guard actor={actor} area="discipline"><Discipline actor={actor} /></Guard>} />
-              <Route path="*" element={<Navigate to="/overview" replace />} />
+              <Route path="*" element={<Navigate to={staff.canAccessArea(actor, 'admin') ? '/admin' : '/overview'} replace />} />
             </Route>
-          </Routes>
+            </Routes>
+            <AssistantWidget actor={actor} materialHref={(id) => `#/materials/${id}`} />
+          </>
         )}
       </HashRouter>
     </ToastProvider>

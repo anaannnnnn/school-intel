@@ -27,6 +27,7 @@ import {
   RotateCcw,
   Search,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Tags,
   Trophy,
@@ -35,7 +36,7 @@ import {
 } from 'lucide-react';
 import { Avatar, BottomSheet, Switch, cx, formatDate, formatTime, useGlider, useMotion, usePalette, useRouteDirection } from '@school-intel/ui';
 import { STAFF_PALETTES } from './palettes';
-import { className, DEMO_DATE, family, resetData, setSession, staff, teach, useDb } from '@school-intel/api';
+import { chat, className, DEMO_DATE, family, resetData, setSession, staff, teach, useDb } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { setAnnotations, useAnnotations } from './ui';
 
@@ -52,7 +53,9 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: 'Workspace',
     items: [
+      { to: '/admin', area: 'admin', label: 'Administration', icon: ShieldCheck },
       { to: '/overview', area: 'overview', label: 'Overview', icon: LayoutDashboard },
+      { to: '/chat', area: 'chat', label: 'Messages', icon: MessagesSquare, count: (a) => chat.unreadTotal(a), alert: true },
       { to: '/copilot', area: 'copilot', label: 'Teacher Copilot', icon: Sparkles, count: (a) => staff.drafts(a).filter((d) => ['draft', 'edited', 'missing-evidence'].includes(d.state)).length },
       { to: '/requests', area: 'requests', label: 'Family requests', icon: Inbox, count: (a) => staff.officeRequests(a).filter((r) => r.status === 'awaiting-approval').length, alert: true },
       { to: '/students', area: 'students', label: 'Students & families', icon: Users },
@@ -102,9 +105,9 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
 const LABELS: Record<string, string> = Object.fromEntries(GROUPS.flatMap((g) => g.items.map((i) => [i.to.slice(1), i.label])));
 
 /** The four areas shown in the bottom bar. People see the first four they are allowed to open. */
-const TAB_PRIORITY = ['overview', 'lessons', 'marking', 'requests', 'support', 'attendance', 'students', 'leadership', 'integrations', 'audit'];
+const TAB_PRIORITY = ['admin', 'overview', 'chat', 'lessons', 'marking', 'requests', 'support', 'attendance', 'students', 'leadership', 'integrations', 'audit'];
 const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
-const TAB_LABEL: Record<string, string> = { overview: 'Home', lessons: 'Lessons', marking: 'Marking', requests: 'Requests', support: 'Support', attendance: 'Attendance', students: 'Students', leadership: 'Leaders', integrations: 'Systems', audit: 'Audit' };
+const TAB_LABEL: Record<string, string> = { admin: 'Admin', chat: 'Chat', overview: 'Home', lessons: 'Lessons', marking: 'Marking', requests: 'Requests', support: 'Support', attendance: 'Attendance', students: 'Students', leadership: 'Leaders', integrations: 'Systems', audit: 'Audit' };
 
 type Sheet = 'more' | 'account' | 'notes' | 'search' | null;
 

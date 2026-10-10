@@ -33,6 +33,8 @@ export const AREA_ROLES: Record<string, StaffRole[]> = {
   doubts: ['teacher'],
   gradebook: ['teacher', 'leadership'],
   discipline: ['teacher', 'pastoral', 'leadership'],
+  admin: ['admin'],
+  chat: ['teacher', 'pastoral', 'safeguarding', 'office', 'attendance', 'it', 'leadership', 'admin'],
 };
 
 export function canAccessArea(actor: Actor, area: string) {

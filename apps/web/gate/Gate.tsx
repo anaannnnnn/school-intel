@@ -3,6 +3,7 @@ import { AlertCircle, ArrowLeft, ArrowRight, Check, Eye, EyeOff, KeyRound, LifeB
 import { auth, getDb, setSession } from '@school-intel/api';
 import type { Actor } from '@school-intel/contracts';
 import { RoleArt } from './art';
+import { Showcase } from './Showcase';
 import { ROLES, rememberRole, rememberedRole, roleInfo, type Role } from './roles';
 import './gate.css';
 
@@ -102,7 +103,7 @@ function Welcome({ onPick }: { onPick: (r: Role) => void }) {
   return (
     <section className="gt-welcome" aria-labelledby="gt-h">
       <div className="gt-hero">
-        <p className="gt-kicker">Welcome</p>
+        <p className="gt-kicker">Horizon Learning School · CBSE</p>
         <h1 id="gt-h">
           Your school day,
           <br />
@@ -136,6 +137,7 @@ function Welcome({ onPick }: { onPick: (r: Role) => void }) {
         ))}
       </ul>
       <p className="gt-trust"><ShieldCheck size={15} aria-hidden /> Each role only sees what it is allowed to see. Every sign-in is recorded.</p>
+      <Showcase />
     </section>
   );
 }
