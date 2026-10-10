@@ -23,7 +23,8 @@ export type StaffRole =
   | 'office'
   | 'attendance'
   | 'it'
-  | 'leadership';
+  | 'leadership'
+  | 'admin';
 
 export interface StaffMember {
   id: string;
@@ -43,6 +44,14 @@ export interface Student {
   classId: string;
   yearGroup: number;
   initials: string;
+  /** Section letter within the grade, for example A. */
+  section?: string;
+  rollNo?: number;
+  gender?: 'F' | 'M';
+  dob?: string;
+  house?: string;
+  bloodGroup?: string;
+  busRoute?: string;
 }
 
 export interface Guardian {
@@ -66,6 +75,11 @@ export interface SchoolClass {
   label: string;
   yearGroup: number;
   tutorId: string;
+  /** Learning group that shares subjects, notes and papers: every section of a grade (or grade and stream). */
+  cohort?: string;
+  section?: string;
+  stream?: string;
+  room?: string;
 }
 
 /** A demo login: a login ID that maps to one person. */
@@ -431,7 +445,7 @@ export interface Topic {
   order: number;
 }
 
-export type MaterialKind = 'notes' | 'video' | 'worksheet' | 'slides';
+export type MaterialKind = 'notes' | 'video' | 'worksheet' | 'slides' | 'textbook' | 'revision' | 'sample-paper';
 
 export interface Material {
   id: string;
@@ -628,3 +642,30 @@ export interface BehaviourPoint {
   at: ISODate;
   parentNotified: boolean;
 }
+
+// ---------- Report cards ----------
+
+export interface ScoreEntry {
+  subjectId: string;
+  exam: string;
+  marks: number;
+  max: number;
+}
+
+// ---------- Chat rooms ----------
+
+export type ChatPartyKind = 'student' | 'guardian' | 'staff';
+
+/** A room is either a class room (`class:<classId>`) or a direct thread (`dm:<keyA>|<keyB>`, keys are `kind:id`, sorted). */
+export interface ChatMessage {
+  id: string;
+  roomId: string;
+  fromKind: ChatPartyKind;
+  fromId: string;
+  fromName: string;
+  text: string;
+  at: ISODate;
+  /** Set when a teacher sent one message to a whole class. */
+  broadcast?: { classId: string; audience: 'students' | 'parents' | 'both' };
+}
+

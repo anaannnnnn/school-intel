@@ -9,6 +9,7 @@ import * as ai from './ai';
 import { attemptScore, attendanceSummary } from './learn';
 import { DEMO_DATE } from './constants';
 import type { Db } from './db-types';
+import { inClass } from './cohort';
 import { getDb, mutate, nextId, nowIso } from './store';
 
 const studentName = (d: Db, id: string) => d.students.find((s) => s.id === id)?.name ?? id;
@@ -19,7 +20,7 @@ export function subjectsVisible(actor: Actor): Subject[] {
   const d = getDb();
   if (s.roles.includes('leadership')) return d.subjects;
   const tutorOf = d.classes.filter((c) => c.tutorId === s.id).map((c) => c.id);
-  return d.subjects.filter((x) => x.teacherId === s.id || tutorOf.includes(x.classId));
+  return d.subjects.filter((x) => x.teacherId === s.id || tutorOf.some((c) => inClass(x.classId, c, d)));
 }
 
 export function mySubjects(actor: Actor): Subject[] {
@@ -288,7 +289,7 @@ export function assessments(actor: Actor) {
 }
 
 function assessmentRow(d: Db, a: Assessment) {
-  const cls = d.students.filter((s) => s.classId === a.classId);
+  const cls = d.students.filter((s) => inClass(a.classId, s.classId, d));
   const attempts = d.attempts.filter((x) => x.assessmentId === a.id && x.status !== 'in-progress');
   const scored = attempts.filter((x) => x.items.every((i) => i.awarded !== undefined));
   return {
@@ -320,7 +321,7 @@ export function assessmentDetail(actor: Actor, id: string) {
       return { question: q, topic: d.topics.find((t) => t.id === q.topicId)!, insight: items.find((i) => i.questionId === qid)! };
     }),
     students: d.students
-      .filter((s) => s.classId === a.classId)
+      .filter((s) => inClass(a.classId, s.classId, d))
       .map((s) => {
         const at = attempts.find((x) => x.studentId === s.id);
         return { student: s, attempt: at, score: at && at.items.every((i) => i.awarded !== undefined) ? attemptScore(at) : undefined };
@@ -389,7 +390,7 @@ export function setAssessmentStatus(actor: Actor, id: string, status: Assessment
     x.status = status;
     if (status === 'open') {
       if (x.opensAt > nowIso()) x.opensAt = nowIso();
-      d.students.filter((s) => s.classId === x.classId).forEach((s) => notifyStudent(d, s.id, x.kind === 'quiz' ? 'New quiz' : 'Test open', `${x.title} is ready in Tests.`, '/tests'));
+      d.students.filter((s) => inClass(x.classId, s.classId, d)).forEach((s) => notifyStudent(d, s.id, x.kind === 'quiz' ? 'New quiz' : 'Test open', `${x.title} is ready in Tests.`, '/tests'));
     }
     audit(d, actor, `Assessment ${status}`, x.id);
   });
@@ -538,7 +539,7 @@ export function writtenTasks(actor: Actor) {
     .filter((t) => visible.includes(t.subjectId))
     .map((t) => {
       const subs = d.writtenSubmissions.filter((w) => w.taskId === t.id);
-      return { ...t, subject: d.subjects.find((x) => x.id === t.subjectId)!, submitted: subs.length, toConfirm: subs.filter((w) => w.status === 'ai-suggested').length, confirmed: subs.filter((w) => w.status === 'confirmed').length, released: subs.filter((w) => w.status === 'released').length, classSize: d.students.filter((s) => s.classId === t.classId).length };
+      return { ...t, subject: d.subjects.find((x) => x.id === t.subjectId)!, submitted: subs.length, toConfirm: subs.filter((w) => w.status === 'ai-suggested').length, confirmed: subs.filter((w) => w.status === 'confirmed').length, released: subs.filter((w) => w.status === 'released').length, classSize: d.students.filter((s) => inClass(t.classId, s.classId, d)).length };
     });
 }
 
@@ -581,7 +582,7 @@ export function gradebook(actor: Actor, subjectId: string) {
   ].sort((a, b) => a.date.localeCompare(b.date));
   const topics = d.topics.filter((t) => t.subjectId === subjectId).sort((a, b) => a.order - b.order);
   const rows = d.students
-    .filter((s) => s.classId === subj.classId)
+    .filter((s) => inClass(subj.classId, s.classId, d))
     .map((st) => {
       const cells = cols.map((c) => {
         if (c.kind === 'written') {
@@ -675,7 +676,7 @@ export function learningRecord(actor: Actor, studentId: string) {
   if (!canStaffSeeStudent(actor, studentId)) throw new AccessDenied();
   const d = getDb();
   const st = d.students.find((x) => x.id === studentId)!;
-  const subs = d.subjects.filter((x) => x.classId === st.classId);
+  const subs = d.subjects.filter((x) => inClass(x.classId, st.classId, d));
   return {
     attendance: attendanceSummary(d, studentId),
     behaviour: d.behaviourPoints.filter((p) => p.studentId === studentId).sort((a, b) => b.at.localeCompare(a.at)),

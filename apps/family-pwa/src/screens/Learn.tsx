@@ -14,6 +14,9 @@ export const KIND: Record<MaterialKind, { label: string; icon: LucideIcon; verb:
   worksheet: { label: 'Worksheet', icon: FileText, verb: 'work' },
   video: { label: 'Video', icon: Video, verb: 'watch' },
   slides: { label: 'Slides', icon: Presentation, verb: 'read' },
+  textbook: { label: 'Textbook guide', icon: Library, verb: 'read' },
+  revision: { label: 'Revision sheet', icon: BookOpen, verb: 'revise' },
+  'sample-paper': { label: 'Sample paper', icon: FileText, verb: 'attempt' },
 };
 
 export function ringColor(pct: number | undefined) {

@@ -2,12 +2,13 @@
 // its logins must accept the documented initial passcode. Regenerate with `npm run db:build`.
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 import { verifyPasscode } from './passcode';
 import { createSeed } from './seed';
 
-const FILE = new URL('../../../apps/public/data/school.db', import.meta.url).pathname;
+const FILE = fileURLToPath(new URL('../../../apps/public/data/school.db', import.meta.url));
 const INITIAL_PASSCODE = 'Horizon-2026';
 
 describe('school.db', () => {
