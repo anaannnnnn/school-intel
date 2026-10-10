@@ -37,6 +37,7 @@ import { Grades } from './screens/Grades';
 import { BehaviourScreen } from './screens/BehaviourScreen';
 import { Timetable } from './screens/Timetable';
 import { Progress } from './screens/Progress';
+import { ChatScreen } from '../../shared/ChatScreen';
 
 export function App() {
   const actor = useSession('family');
@@ -75,6 +76,7 @@ export function App() {
                 <Route path="/tests/play/:attemptId" element={<Player />} />
                 <Route path="/tests/result/:attemptId" element={<Result />} />
                 <Route path="/written/:id" element={<WrittenTask />} />
+                <Route path="/chat" element={<ChatScreen actor={actor} />} />
                 <Route path="/me" element={<Me />} />
                 <Route path="/progress" element={<Progress />} />
                 <Route path="/attendance" element={<AttendanceScreen />} />

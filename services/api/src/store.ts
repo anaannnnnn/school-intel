@@ -31,16 +31,27 @@ export interface AccountRow {
 }
 
 let db: Db | undefined;
-let baseline = '';
+let baseline: Record<string, string> = {};
 let version: string | undefined;
 let accountRows: AccountRow[] = [];
 
+const fromBaseline = (): Db => {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(baseline)) out[k] = JSON.parse(v);
+  return out as unknown as Db;
+};
+
+/** Only the top-level collections that differ from the released database are saved, so the large
+ *  static libraries (materials, questions) never count against the local storage quota. */
 function readSaved(): Db | null {
   try {
     const raw = storage?.getItem(KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Db;
-    return version && parsed.dataVersion === version ? parsed : null;
+    const saved = JSON.parse(raw) as { dataVersion?: string; changed?: Record<string, unknown> };
+    if (!version || saved.dataVersion !== version || !saved.changed) return null;
+    const out = fromBaseline() as unknown as Record<string, unknown>;
+    for (const [k, v] of Object.entries(saved.changed)) out[k] = v;
+    return out as unknown as Db;
   } catch {
     return null;
   }
@@ -48,10 +59,10 @@ function readSaved(): Db | null {
 
 /** Install the school database document and its logins. Local changes from the same release are kept. */
 export function installDatabase(doc: Db, accounts: AccountRow[] = []) {
-  baseline = JSON.stringify(doc);
+  baseline = Object.fromEntries(Object.entries(doc).map(([k, v]) => [k, JSON.stringify(v)]));
   version = doc.dataVersion;
   accountRows = accounts;
-  db = readSaved() ?? (JSON.parse(baseline) as Db);
+  db = readSaved() ?? fromBaseline();
   emit();
 }
 
@@ -63,7 +74,12 @@ export function accountList(): AccountRow[] {
 
 function persist() {
   try {
-    storage?.setItem(KEY, JSON.stringify(db));
+    const changed: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(db as unknown as Record<string, unknown>)) {
+      const json = JSON.stringify(v);
+      if (json !== baseline[k]) changed[k] = v;
+    }
+    storage?.setItem(KEY, JSON.stringify({ dataVersion: version, changed }));
   } catch {
     /* private mode or quota: the app keeps working in memory */
   }
@@ -75,8 +91,8 @@ function emit() {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
-    if (e.key !== KEY || !baseline) return;
-    db = readSaved() ?? (JSON.parse(baseline) as Db);
+    if (e.key !== KEY || !version) return;
+    db = readSaved() ?? fromBaseline();
     emit();
   });
 }
@@ -91,9 +107,16 @@ export function subscribe(listener: Listener): () => void {
   return () => listeners.delete(listener);
 }
 
+/** Large, rarely edited collections are copied one level deep instead of fully cloned. */
+const SHARED = ['materials', 'topics', 'questions', 'pastPapers', 'students', 'guardians', 'relationships', 'subjects', 'scorecards', 'attendanceHistory', 'periods', 'examEvents'];
+const shallow = (v: unknown) => (Array.isArray(v) ? [...v] : v && typeof v === 'object' ? { ...(v as object) } : v);
+
 /** Apply a mutation atomically, then persist and notify subscribers. */
 export function mutate<T>(fn: (draft: Db) => T): T {
-  const next = structuredClone(getDb());
+  const cur = getDb();
+  const next = structuredClone({ ...cur, ...Object.fromEntries(SHARED.map((k) => [k, undefined])) }) as Db;
+  const mutable = next as unknown as Record<string, unknown>;
+  for (const k of SHARED) mutable[k] = shallow((cur as unknown as Record<string, unknown>)[k]);
   const result = fn(next);
   db = next;
   persist();
@@ -103,7 +126,7 @@ export function mutate<T>(fn: (draft: Db) => T): T {
 
 /** Discard local changes and go back to the school database as released. */
 export function resetData() {
-  db = JSON.parse(baseline) as Db;
+  db = fromBaseline();
   persist();
   emit();
 }

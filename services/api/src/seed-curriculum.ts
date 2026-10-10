@@ -1,20 +1,27 @@
-// Real syllabus structure for Grades 9 to 13, with fictional people.
+// CBSE-only school data for Classes 1 to 12, with fictional people.
 //
-// Subjects, chapters and topics come from the published CBSE/NCERT, CISCE
-// (ICSE and ISC) and Cambridge International (IGCSE, O Level, AS and A Level)
-// syllabuses: see curriculum/catalogue.json and docs/curriculum-data.md for
-// sources and licences. Only codes, chapter numbers and titles are used; no
-// textbook text, past papers or mark schemes are copied.
+// Every class has several sections (A to D for Classes 1 to 5, A to E for Classes 6 to 10, and by stream for
+// Classes 11 and 12) of 22 or more students. Subjects, chapters, study materials and quizzes belong to a cohort
+// (one per class, or per stream in Classes 11 and 12) and are shared by every section of that cohort. See cohort.ts.
 //
-// Every student, guardian and teacher below is invented. Do not replace with
-// real records.
+// Chapter titles come from the NCERT books that CBSE prescribes (catalogue.json for Classes 9 to 12, cbse/primary.ts
+// for the rest). Only titles are used; no textbook text, past papers or mark schemes are copied.
+// Every student, guardian and teacher below is invented.
 
 import type {
   Account,
+  Assessment,
+  AttendanceDay,
+  BehaviourPoint,
+  ExamEvent,
   Guardian,
   GuardianRelationship,
   Material,
+  PastPaper,
   Period,
+  Presence,
+  Question,
+  ScoreEntry,
   SchoolClass,
   StaffMember,
   Student,
@@ -22,7 +29,9 @@ import type {
   Topic,
 } from '@school-intel/contracts';
 import catalogueJson from './curriculum/catalogue.json';
-import notesJson from './curriculum/notes.json';
+import { EXTRA_CHAPTERS } from './cbse/primary';
+import { notesBody, revisionBody, samplePaperBody, textbookBody, worksheetBody, type ChapterCtx } from './cbse/content';
+import { accountsQuestions, factQuestions, mathQuestions, reflectionQuestion, rngFrom, type RawQ } from './cbse/questions';
 
 export interface CatalogueTopic {
   no: number;
@@ -39,122 +48,112 @@ export interface CatalogueCourse {
   src: string;
   t: CatalogueTopic[];
 }
-export type Programme = 'cbse' | 'icse' | 'isc' | 'igcse' | 'olevel' | 'as' | 'al';
+export type Programme = 'cbse';
 
-export const catalogue = catalogueJson as unknown as CatalogueCourse[];
+export const catalogue = (catalogueJson as unknown as CatalogueCourse[]).filter((c) => c.p === 'cbse');
 
-/** Study notes written for a topic. Keyed by `topicKey`; see docs/curriculum-data.md. */
-export interface TopicNote {
-  minutes: number;
-  paragraphs: string[];
+export const PROGRAMME_LABEL: Record<Programme, string> = { cbse: 'CBSE' };
+
+export const START_DATE = '2026-08-24';
+
+export interface CohortSpec {
+  id: string;
+  grade: number;
+  stream?: 'Science' | 'Commerce' | 'Humanities';
+  subjects: string[];
+  sections: string[];
 }
-const notes = notesJson as unknown as Record<string, TopicNote>;
 
-export const PROGRAMME_LABEL: Record<Programme, string> = {
-  cbse: 'CBSE',
-  icse: 'ICSE',
-  isc: 'ISC',
-  igcse: 'Cambridge IGCSE',
-  olevel: 'Cambridge O Level',
-  as: 'Cambridge AS Level',
-  al: 'Cambridge A Level',
+const SCIENCE = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science', 'English Core'];
+const COMMERCE = ['Accountancy', 'Business Studies', 'Economics', 'Mathematics', 'Informatics Practices', 'English Core'];
+const HUMANITIES = ['History', 'Political Science', 'Geography', 'Psychology', 'Economics', 'English Core'];
+
+const CORE: Record<number, string[]> = {
+  1: ['English', 'Mathematics', 'Hindi', 'Environmental Awareness'],
+  2: ['English', 'Mathematics', 'Hindi', 'Environmental Awareness'],
+  3: ['English', 'Mathematics', 'Hindi', 'EVS'],
+  4: ['English', 'Mathematics', 'Hindi', 'EVS'],
+  5: ['English', 'Mathematics', 'Hindi', 'EVS'],
+  6: ['Mathematics', 'Science', 'Social Science', 'English', 'Hindi', 'Computer Science'],
+  7: ['Mathematics', 'Science', 'Social Science', 'English', 'Hindi', 'Computer Science'],
+  8: ['Mathematics', 'Science', 'Social Science', 'English', 'Hindi', 'Computer Science'],
+  9: ['Mathematics', 'Science', 'Social Science', 'English', 'Hindi'],
+  10: ['Mathematics', 'Science', 'Social Science', 'English', 'Hindi'],
 };
 
-/** Teachers are shared by every class of a family and stage. */
-type Family = 'cbse' | 'cisce' | 'cie-sec' | 'cie-adv';
-const FAMILY_LABEL: Record<Family, string> = { cbse: 'CBSE', cisce: 'ICSE and ISC', 'cie-sec': 'IGCSE and O Level', 'cie-adv': 'AS and A Level' };
+export const COHORTS: CohortSpec[] = (() => {
+  const out: CohortSpec[] = [];
+  for (let g = 1; g <= 10; g++) out.push({ id: `G${g}`, grade: g, subjects: CORE[g], sections: g <= 5 ? ['A', 'B', 'C', 'D'] : ['A', 'B', 'C', 'D', 'E'] });
+  for (const g of [11, 12]) {
+    out.push({ id: `G${g}-Science`, grade: g, stream: 'Science', subjects: SCIENCE, sections: ['A', 'B'] });
+    out.push({ id: `G${g}-Commerce`, grade: g, stream: 'Commerce', subjects: COMMERCE, sections: ['C', 'D'] });
+    out.push({ id: `G${g}-Humanities`, grade: g, stream: 'Humanities', subjects: HUMANITIES, sections: ['E', 'F'] });
+  }
+  return out;
+})();
 
-interface ClassSpec {
-  id: string;
-  key: string; // used in login IDs
-  p: Programme;
-  grade: number;
-  stream?: string;
-  family: Family;
-  stage: 'lower' | 'upper';
-  subjects: string[];
-  /** Cambridge secondary courses run over two years: which half of the topics. */
-  half?: 'first' | 'second';
-}
-
-const CBSE_LO = ['Mathematics', 'Science', 'Social Science', 'English'];
-const CBSE_SCI = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science', 'English Core'];
-const CBSE_COM = ['Accountancy', 'Business Studies', 'Economics', 'Mathematics', 'Informatics Practices', 'English Core'];
-const ICSE = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'History and Civics', 'Geography', 'Computer Applications'];
-const ISC_SCI = ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'];
-const ISC_COM = ['Accountancy', 'Commerce', 'Economics', 'Business Studies', 'Mathematics'];
-const IGCSE = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Business Studies', 'Economics'];
-const OLEVEL = ['Mathematics (Syllabus D)', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Accounting', 'Economics'];
-const ADV_SCI = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
-const ADV_BUS = ['Business', 'Economics', 'Accounting', 'Mathematics'];
-
-export const CLASS_SPECS: ClassSpec[] = [
-  { id: '9CB', key: 'cbse9', p: 'cbse', grade: 9, family: 'cbse', stage: 'lower', subjects: CBSE_LO },
-  { id: '10CB', key: 'cbse10', p: 'cbse', grade: 10, family: 'cbse', stage: 'lower', subjects: CBSE_LO },
-  { id: '11CBS', key: 'cbse11s', p: 'cbse', grade: 11, stream: 'Science', family: 'cbse', stage: 'upper', subjects: CBSE_SCI },
-  { id: '11CBC', key: 'cbse11c', p: 'cbse', grade: 11, stream: 'Commerce', family: 'cbse', stage: 'upper', subjects: CBSE_COM },
-  { id: '12CBS', key: 'cbse12s', p: 'cbse', grade: 12, stream: 'Science', family: 'cbse', stage: 'upper', subjects: CBSE_SCI },
-  { id: '12CBC', key: 'cbse12c', p: 'cbse', grade: 12, stream: 'Commerce', family: 'cbse', stage: 'upper', subjects: CBSE_COM },
-  { id: '9IC', key: 'icse9', p: 'icse', grade: 9, family: 'cisce', stage: 'lower', subjects: ICSE },
-  { id: '10IC', key: 'icse10', p: 'icse', grade: 10, family: 'cisce', stage: 'lower', subjects: ICSE },
-  { id: '11ISS', key: 'isc11s', p: 'isc', grade: 11, stream: 'Science', family: 'cisce', stage: 'upper', subjects: ISC_SCI },
-  { id: '11ISC', key: 'isc11c', p: 'isc', grade: 11, stream: 'Commerce', family: 'cisce', stage: 'upper', subjects: ISC_COM },
-  { id: '12ISS', key: 'isc12s', p: 'isc', grade: 12, stream: 'Science', family: 'cisce', stage: 'upper', subjects: ISC_SCI },
-  { id: '12ISC', key: 'isc12c', p: 'isc', grade: 12, stream: 'Commerce', family: 'cisce', stage: 'upper', subjects: ISC_COM },
-  { id: '10IG', key: 'igcse10', p: 'igcse', grade: 10, family: 'cie-sec', stage: 'lower', subjects: IGCSE, half: 'first' },
-  { id: '11IG', key: 'igcse11', p: 'igcse', grade: 11, family: 'cie-sec', stage: 'lower', subjects: IGCSE, half: 'second' },
-  { id: '10OL', key: 'ol10', p: 'olevel', grade: 10, family: 'cie-sec', stage: 'lower', subjects: OLEVEL, half: 'first' },
-  { id: '11OL', key: 'ol11', p: 'olevel', grade: 11, family: 'cie-sec', stage: 'lower', subjects: OLEVEL, half: 'second' },
-  { id: '12ASS', key: 'as12s', p: 'as', grade: 12, stream: 'Science', family: 'cie-adv', stage: 'upper', subjects: ADV_SCI },
-  { id: '12ASB', key: 'as12b', p: 'as', grade: 12, stream: 'Business', family: 'cie-adv', stage: 'upper', subjects: ADV_BUS },
-  { id: '13ALS', key: 'al13s', p: 'al', grade: 13, stream: 'Science', family: 'cie-adv', stage: 'upper', subjects: ADV_SCI },
-  { id: '13ALB', key: 'al13b', p: 'al', grade: 13, stream: 'Business', family: 'cie-adv', stage: 'upper', subjects: ADV_BUS },
-];
-
-const STUDENTS_PER_CLASS = 4;
-
-function stageLabel(spec: ClassSpec): string {
-  if (spec.family === 'cbse' || spec.family === 'cisce') return spec.stage === 'lower' ? 'Classes 9–10' : 'Classes 11–12';
-  return spec.family === 'cie-sec' ? 'Years 10–11' : 'Years 12–13';
-}
-
-const FIRST = ['Aaliyah', 'Rayan', 'Meera', 'Arjun', 'Fatima', 'Zayd', 'Ananya', 'Kabir', 'Layla', 'Omar', 'Diya', 'Hamza', 'Ishaan', 'Mariam', 'Yusuf', 'Sana', 'Rohan', 'Noor', 'Tariq', 'Priya', 'Ibrahim', 'Aarav', 'Hana', 'Khalid', 'Zoya', 'Nikhil', 'Salma', 'Dev', 'Amira', 'Sameer', 'Leena', 'Faisal'];
-const LAST = ['Siddiqui', 'Nair', 'Hashmi', 'Kapoor', 'Al Suwaidi', 'Menon', 'Rahman', 'Iyer', 'Qureshi', 'Joshi', 'Haddad', 'Bhatia', 'Farouk', 'Pillai', 'Mansoor', 'Desai', 'Sheikh', 'Varma', 'Khoury', 'Reddy', 'Nasser', 'Gupta', 'Ansari', 'Thomas'];
-
-const slug = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const initials = (n: string) => n.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-const hueOf = (s: string) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
-const t = (date: string, time: string) => `${date}T${time}:00+04:00`;
-
-/** A fixed, invented name for the n-th person. First and last names step at different rates so pairs rarely repeat. */
-function personName(n: number): string {
-  return `${FIRST[(n * 7 + 3) % FIRST.length]} ${LAST[(n * 5 + Math.floor(n / FIRST.length)) % LAST.length]}`;
+/** Chapters of one subject in one class. */
+export function chaptersOf(grade: number, subject: string): CatalogueTopic[] {
+  const course = catalogue.find((c) => c.g === grade && c.s === subject);
+  if (course && course.t.length) return course.t;
+  const extra = EXTRA_CHAPTERS[grade]?.[subject];
+  if (extra) return extra.map((title, i) => ({ no: i + 1, title }));
+  throw new Error(`No CBSE chapters for Class ${grade} ${subject}`);
 }
 
 export function findCourse(p: Programme, grade: number, subject: string): CatalogueCourse | undefined {
   return catalogue.find((c) => c.p === p && c.g === grade && c.s === subject);
 }
 
-/** Topics a class studies. Two-year Cambridge courses are split over the two years. */
-export function classTopics(spec: ClassSpec, course: CatalogueCourse): CatalogueTopic[] {
-  // IGCSE and O Level share one list; the catalogue stores it under both years.
-  let list = course.t;
-  if (spec.p === 'as') list = list.filter((x) => !x.flag || x.flag.startsWith('AS'));
-  if (spec.half) {
-    const cut = Math.ceil(list.length / 2);
-    list = spec.half === 'first' ? list.slice(0, cut) : list.slice(cut);
-  }
-  return list;
-}
+const FEMALE = ['Aaradhya', 'Ananya', 'Diya', 'Meera', 'Ishita', 'Kavya', 'Saanvi', 'Riya', 'Navya', 'Anika', 'Myra', 'Tara', 'Prisha', 'Aditi', 'Pooja', 'Sneha', 'Zoya', 'Fatima', 'Sana', 'Mariam', 'Noor', 'Aisha', 'Hana', 'Leena', 'Simran', 'Harleen', 'Tanvi', 'Isha', 'Nandini', 'Radhika', 'Shreya', 'Vidya', 'Amira', 'Lakshmi', 'Gauri', 'Pallavi'];
+const MALE = ['Aarav', 'Arjun', 'Vivaan', 'Kabir', 'Rohan', 'Ishaan', 'Reyansh', 'Aditya', 'Dhruv', 'Kunal', 'Nikhil', 'Rayan', 'Zayd', 'Hamza', 'Yusuf', 'Omar', 'Ibrahim', 'Tariq', 'Sameer', 'Dev', 'Karan', 'Manav', 'Rishi', 'Siddharth', 'Varun', 'Yash', 'Faisal', 'Khalid', 'Advait', 'Harsh', 'Parth', 'Tejas', 'Vihaan', 'Neel', 'Ayaan', 'Lakshya'];
+const LAST = ['Sharma', 'Nair', 'Iyer', 'Kapoor', 'Menon', 'Reddy', 'Gupta', 'Verma', 'Joshi', 'Pillai', 'Bhatia', 'Desai', 'Khan', 'Siddiqui', 'Ansari', 'Qureshi', 'Rahman', 'Sheikh', 'Singh', 'Gill', 'Mehta', 'Shah', 'Patel', 'Rao', 'Banerjee', 'Chatterjee', 'Das', 'Thomas', 'Mathew', 'George', 'Fernandes', 'Dsouza', 'Kulkarni', 'Deshmukh', 'Agarwal', 'Malhotra', 'Bose', 'Naidu'];
+const HOUSES = ['Aravali', 'Nilgiri', 'Himalaya', 'Vindhya'];
+const BLOOD = ['O+', 'A+', 'B+', 'AB+', 'O−', 'A−', 'B−'];
+const ROUTES = ['Route 1 · Al Nahda', 'Route 2 · Karama', 'Route 3 · Bur Dubai', 'Route 4 · Mirdif', 'Self / parent drop'];
+
+const slug = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const initials = (n: string) => n.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+const hueOf = (s: string) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
+const t = (date: string, time: string) => `${date}T${time}:00+04:00`;
+const hash = (s: string) => [...s].reduce((a, c) => (a * 33 + c.charCodeAt(0)) >>> 0, 5381);
+const isFemale = (first: string) => FEMALE.includes(first);
 
 const WEEK: Array<[string, string]> = [
-  ['07:45', '08:35'],
-  ['08:40', '09:30'],
-  ['09:35', '10:15'],
-  ['10:20', '11:10'],
-  ['11:15', '12:05'],
-  ['12:40', '13:30'],
+  ['08:00', '08:45'],
+  ['08:50', '09:35'],
+  ['09:40', '10:25'],
+  ['10:45', '11:30'],
+  ['11:35', '12:20'],
+  ['12:50', '13:35'],
 ];
+
+/** Weekdays from the start of term up to the day before the pinned school date. */
+export function termDays(until = '2026-10-05'): string[] {
+  const out: string[] = [];
+  for (let d = new Date(`${START_DATE}T00:00:00Z`); d <= new Date(`${until}T00:00:00Z`); d = new Date(d.getTime() + 86400000)) {
+    const w = d.getUTCDay();
+    if (w !== 0 && w !== 6) out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+export interface LegacySubject {
+  subjectId: string;
+  teacherId: string;
+  topicCount: number;
+}
+
+export interface CurriculumOptions {
+  /** Hand-written students (the original demo scenario). They get a section, roll number and so on. */
+  existingStudents: Student[];
+  /** Existing subjects to extend with chapters instead of creating new ones, keyed by cohort then subject name. */
+  legacy: Record<string, Record<string, LegacySubject>>;
+  /** Hand-set class tutors, keyed by section id. */
+  tutors: Record<string, string>;
+  /** Students who already have attendance history. */
+  hasAttendance: Set<string>;
+}
 
 export interface CurriculumSeed {
   classes: SchoolClass[];
@@ -167,139 +166,213 @@ export interface CurriculumSeed {
   materials: Material[];
   periods: Period[];
   accounts: Account[];
+  questions: Question[];
+  pastPapers: PastPaper[];
+  assessments: Assessment[];
+  examEvents: ExamEvent[];
+  attendanceHistory: Record<string, AttendanceDay[]>;
+  behaviourPoints: BehaviourPoint[];
+  scorecards: Record<string, ScoreEntry[]>;
+  /** Teacher id to the cohorts they teach, for extending hand-written staff. */
+  teaches: Record<string, string[]>;
 }
 
-export function classLabel(spec: ClassSpec): string {
-  const unit = spec.p === 'cbse' || spec.p === 'icse' || spec.p === 'isc' ? 'Class' : 'Year';
-  return `${unit} ${spec.grade}${spec.stream ? ` ${spec.stream}` : ''} · ${PROGRAMME_LABEL[spec.p]}`;
+export const cohortLabel = (c: CohortSpec) => `Class ${c.grade}${c.stream ? ` ${c.stream}` : ''}`;
+export const sectionLabel = (c: CohortSpec, sec: string) => `Class ${c.grade}${sec}${c.stream ? ` · ${c.stream}` : ''}`;
+export const stageOf = (grade: number) => (grade <= 5 ? 'Primary' : grade <= 8 ? 'Middle' : grade <= 10 ? 'Secondary' : 'Senior secondary');
+
+const ATTENDANCE_PROFILES = [0.99, 0.97, 0.95, 0.93, 0.9, 0.86, 0.8];
+
+export function cohortSections(cohortId: string): string[] {
+  const c = COHORTS.find((x) => x.id === cohortId);
+  return c ? c.sections.map((s) => `${c.grade}${s}`) : [];
 }
 
-/** Two-year Cambridge courses share one topic list across Year 10 and 11, so they share notes too. */
-export function topicKey(spec: ClassSpec, course: CatalogueCourse, tp: CatalogueTopic): string {
-  const span = spec.p === 'igcse' || spec.p === 'olevel' ? 'y10-11' : String(spec.grade);
-  return `${spec.p}|${span}|${course.s}|${tp.no}|${tp.title}`;
-}
+export function createCurriculumSeed(opts: CurriculumOptions): CurriculumSeed {
+  const out: CurriculumSeed = {
+    classes: [], staff: [], students: [], guardians: [], relationships: [], subjects: [], topics: [], materials: [], periods: [], accounts: [],
+    questions: [], pastPapers: [], assessments: [], examEvents: [], attendanceHistory: {}, behaviourPoints: [], scorecards: {}, teaches: {},
+  };
+  const days = termDays();
+  let teacherNo = 0;
+  let behaviourNo = 0;
 
-/** Every distinct topic the seeded classes study, for writing notes. */
-export function topicTasks() {
-  const seen = new Map<string, { key: string; board: string; programme: Programme; level: string; subject: string; code: string | null; no: number; title: string; flag?: string; parts?: string[] }>();
-  for (const spec of CLASS_SPECS) {
-    for (const name of spec.subjects) {
-      const course = findCourse(spec.p, spec.p === 'igcse' || spec.p === 'olevel' ? 10 : spec.grade, name)!;
-      for (const tp of classTopics(spec, course)) {
-        const key = topicKey(spec, course, tp);
-        if (seen.has(key)) continue;
-        const level = spec.p === 'igcse' ? 'IGCSE (Years 10-11)' : spec.p === 'olevel' ? 'O Level (Years 10-11)' : spec.p === 'as' ? 'AS Level (Year 12)' : spec.p === 'al' ? 'A Level (Year 13)' : `${PROGRAMME_LABEL[spec.p]} Class ${spec.grade}`;
-        seen.set(key, { key, board: PROGRAMME_LABEL[spec.p], programme: spec.p, level, subject: course.s.replace(/\(.*\)/, '').trim(), code: course.code, no: tp.no, title: tp.title, flag: tp.flag, parts: tp.parts });
-      }
-    }
-  }
-  return [...seen.values()];
-}
-
-function materialBody(spec: ClassSpec, course: CatalogueCourse, topic: CatalogueTopic): string {
-  const board = PROGRAMME_LABEL[spec.p];
-  const ref = `${board}${course.code ? ` ${course.code}` : ''} · ${course.s} · ${topic.flag ? `${topic.flag} · ` : ''}${spec.p === 'cbse' ? 'chapter' : 'topic'} ${topic.no}`;
-  const q = encodeURIComponent(`${topic.title} ${course.s.replace(/\(.*\)/, '').trim()}`);
-  const note = notes[topicKey(spec, course, topic)];
-  const paras: string[] = note ? [...note.paragraphs, 'Written as a study aid for this syllabus topic (AI-drafted original text). Your teacher should check it against your class notes and the official syllabus.'] : [];
-  paras.push(`Syllabus reference: ${ref}.`);
-  if (topic.parts?.length) paras.push(`The syllabus lists these sub-topics under "${topic.title}":\n${topic.parts.map((x) => `• ${x}`).join('\n')}`);
-  paras.push(`Official source (chapter list and syllabus): ${topic.url ?? course.src}`);
-  paras.push(`Free reading: Wikipedia https://en.wikipedia.org/w/index.php?search=${q} · Wikibooks https://en.wikibooks.org/w/index.php?search=${q}. Both are CC BY-SA, so check the page against your syllabus before relying on it.`);
-  if (!note) paras.push('Your teacher will add class notes, worksheets and questions for this topic. This guide only points to the official syllabus and open resources.');
-  return paras.join('\n\n');
-}
-
-export function createCurriculumSeed(): CurriculumSeed {
-  const out: CurriculumSeed = { classes: [], staff: [], students: [], guardians: [], relationships: [], subjects: [], topics: [], materials: [], periods: [], accounts: [] };
-
-  // One teacher per family, stage and subject.
-  const teacherFor = new Map<string, StaffMember>();
-  let person = 100;
-  const teacher = (spec: ClassSpec, subject: string): StaffMember => {
-    const subjectKey = slug(subject);
-    const k = `${spec.family}|${spec.stage}|${subjectKey}`;
-    let s = teacherFor.get(k);
-    if (!s) {
-      const name = personName(person++);
-      const stage = stageLabel(spec);
-      const [first, ...rest] = name.split(' ');
-      s = {
-        id: `st-${spec.family}-${spec.stage}-${subjectKey}`,
-        name,
-        title: `${subject.replace(/\(.*\)/, '').trim()} teacher · ${FAMILY_LABEL[spec.family]} ${stage}`,
-        initials: initials(name),
-        roles: ['teacher'],
-        classIds: [],
-        email: `${first}.${rest.join('').replace(/\s/g, '')}.${spec.family}.${subjectKey}@horizon.example`.toLowerCase(),
-      };
-      teacherFor.set(k, s);
-      out.staff.push(s);
-      out.accounts.push({ loginId: `tch.${spec.family}.${subjectKey}.${spec.stage}`, kind: 'staff', id: s.id, label: `${s.name} · ${s.title}`, group: `${FAMILY_LABEL[spec.family]} · ${stageLabel(spec)}` });
-    }
-    if (!s.classIds.includes(spec.id)) s.classIds.push(spec.id);
-    return s;
+  const teacherName = (n: number) => {
+    const pool = n % 2 === 0 ? FEMALE : MALE;
+    return `${pool[(n * 7 + 3) % pool.length]} ${LAST[(n * 11 + Math.floor(n / 5)) % LAST.length]}`;
   };
 
-  let studentNo = 0;
-  for (const spec of CLASS_SPECS) {
-    const subjectRows: Subject[] = [];
-    for (const name of spec.subjects) {
-      const course = findCourse(spec.p, spec.p === 'igcse' || spec.p === 'olevel' ? 10 : spec.grade, name);
-      if (!course) throw new Error(`Catalogue has no ${spec.p} grade ${spec.grade} ${name}`);
-      const tch = teacher(spec, name);
-      const sid = `sub-${spec.id.toLowerCase()}-${slug(name)}`;
-      const short = name.replace(/\(.*\)/, '').trim();
-      subjectRows.push({ id: sid, name: short, short: short.length > 16 ? short.split(' ')[0] : short, classId: spec.id, teacherId: tch.id, hue: hueOf(name) });
-      classTopics(spec, course).forEach((tp, i) => {
-        const tid = `tp-${spec.id.toLowerCase()}-${slug(name)}-${i + 1}`;
-        out.topics.push({ id: tid, subjectId: sid, name: tp.title, order: i + 1 });
-        const note = notes[topicKey(spec, course, tp)];
-        out.materials.push({
-          id: `MAT-C-${spec.id}-${slug(name)}-${i + 1}`,
-          subjectId: sid,
-          topicId: tid,
-          title: note ? `${tp.title}: study notes` : `${tp.title}: syllabus guide`,
-          kind: 'notes',
-          body: materialBody(spec, course, tp),
-          minutes: note?.minutes ?? 5,
-          status: 'published',
-          aiGenerated: !!note,
-          createdBy: tch.id,
-          updatedAt: t('2026-09-01', '09:00'),
-        });
+  const subjectTeacher = new Map<string, string>();
+
+  for (const cohort of COHORTS) {
+    for (const name of cohort.subjects) {
+      const chapters = chaptersOf(cohort.grade, name);
+      const legacy = opts.legacy[cohort.id]?.[name];
+      const key = `${cohort.id.toLowerCase()}-${slug(name)}`;
+      let sid: string;
+      let teacherId: string;
+      let order0 = 0;
+      if (legacy) {
+        sid = legacy.subjectId;
+        teacherId = legacy.teacherId;
+        order0 = legacy.topicCount;
+      } else {
+        sid = `sub-${key}`;
+        const tname = teacherName(teacherNo++);
+        const [first, ...rest] = tname.split(' ');
+        teacherId = `st-${key}`;
+        const title = `${name} teacher · ${cohortLabel(cohort)}`;
+        out.staff.push({ id: teacherId, name: tname, title, initials: initials(tname), roles: ['teacher'], classIds: [], email: `${first}.${rest.join('')}.${key}@horizon.example`.toLowerCase() });
+        out.accounts.push({ loginId: `tch.${slug(name)}.${cohort.id.toLowerCase().replace('-', '')}`, kind: 'staff', id: teacherId, label: `${tname} · ${title}`, group: `Teachers · ${stageOf(cohort.grade)}` });
+        out.subjects.push({ id: sid, name, short: name.length > 16 ? name.split(' ')[0] : name, classId: cohort.id, teacherId, hue: hueOf(name) });
+      }
+      subjectTeacher.set(`${cohort.id}|${name}`, teacherId);
+      (out.teaches[teacherId] ??= []).push(cohort.id);
+
+      const topicIds: string[] = [];
+      chapters.forEach((ch, i) => {
+        const ctx: ChapterCtx = { grade: cohort.grade, subject: name, no: ch.no, title: ch.title, parts: ch.parts, total: chapters.length, stream: cohort.stream };
+        const tid = `tp-${key}-${i + 1}`;
+        topicIds.push(tid);
+        out.topics.push({ id: tid, subjectId: sid, name: ch.title, order: order0 + i + 1 });
+        const kinds: Array<[Material['kind'], string, { body: string; minutes: number }]> = [
+          ['notes', 'study notes', notesBody(ctx)],
+          ['revision', 'revision cards', revisionBody(ctx)],
+          ['worksheet', 'practice worksheet', worksheetBody(ctx)],
+          ['textbook', 'NCERT textbook guide', textbookBody(ctx)],
+        ];
+        for (const [kind, label, c] of kinds) {
+          out.materials.push({
+            id: `MAT-${key}-${i + 1}-${kind}`, subjectId: sid, topicId: tid, title: `${ch.title}: ${label}`, kind, body: c.body, minutes: c.minutes,
+            status: 'published', aiGenerated: kind !== 'textbook', createdBy: teacherId, updatedAt: t('2026-09-01', '09:00'),
+          });
+        }
+        const refl = reflectionQuestion(ch.title, name, `Q-${key}-${i + 1}`);
+        out.questions.push({ id: `Q-${key}-${i + 1}-s`, subjectId: sid, topicId: tid, difficulty: 2, status: 'approved', aiGenerated: true, ...refl });
       });
-    }
-    out.subjects.push(...subjectRows);
 
-    // Class tutor: the first subject teacher.
-    const tutor = teacherFor.get(`${spec.family}|${spec.stage}|${slug(spec.subjects[0])}`)!;
-    out.classes.push({ id: spec.id, label: classLabel(spec), yearGroup: spec.grade, tutorId: tutor.id });
+      const last = topicIds[topicIds.length - 1];
+      const titles = chapters.map((c) => c.title);
+      for (let v = 0; v < 2; v++) {
+        const sp = samplePaperBody(cohort.grade, name, titles, v);
+        out.materials.push({ id: `MAT-${key}-sp${v + 1}`, subjectId: sid, topicId: last, title: `CBSE-pattern sample paper ${v + 1}`, kind: 'sample-paper', body: sp.body, minutes: sp.minutes, status: 'published', aiGenerated: true, createdBy: teacherId, updatedAt: t('2026-09-10', '09:00') });
+      }
 
-    // Timetable: five days, six lessons, subjects rotated.
-    for (let day = 1; day <= 5; day++) {
-      WEEK.forEach(([start, end], i) => {
-        const subj = subjectRows[(i + day - 1) % subjectRows.length];
-        out.periods.push({ id: `P-${spec.id}-${day}-${i + 1}`, classId: spec.id, subjectId: subj.id, day, start, end, room: `${spec.grade}${String.fromCharCode(65 + (i % 4))}${10 + i}` });
+      const raw: RawQ[] = /^mathematics$/i.test(name) ? mathQuestions(cohort.grade, key) : /accountancy|business/i.test(name) ? accountsQuestions(key) : [];
+      raw.push(...factQuestions(name, cohort.grade));
+      const quizIds: string[] = [];
+      raw.forEach((rq, i) => {
+        const id = `Q-${key}-${i + 1}`;
+        out.questions.push({ id, subjectId: sid, topicId: topicIds[i % topicIds.length], type: rq.type, prompt: rq.prompt, options: rq.options, answer: rq.answer, explanation: rq.explanation, marks: rq.difficulty, difficulty: rq.difficulty, status: 'approved', aiGenerated: true });
+        quizIds.push(id);
       });
+      if (quizIds.length >= 5) {
+        const paperId = `PAPER-${key}`;
+        const set = new Set(quizIds.slice(0, 5));
+        const picked = out.questions.filter((q) => set.has(q.id));
+        picked.forEach((q) => (q.paperId = paperId));
+        out.pastPapers.push({ id: paperId, board: 'CBSE', subjectId: sid, year: 2026, session: 'Practice set', title: `Class ${cohort.grade} ${name}: practice set`, questionIds: picked.map((q) => q.id), licence: 'Original practice questions written for this school; not an official CBSE paper.' });
+      }
+      const shortIds = [`Q-${key}-1-s`, `Q-${key}-2-s`].filter((id) => out.questions.some((q) => q.id === id));
+      if (quizIds.length >= 3) {
+        const qs = quizIds.slice(0, 8);
+        const base = { subjectId: sid, classId: cohort.id, resultsReleased: false, createdBy: teacherId };
+        out.assessments.push({ ...base, id: `AS-${key}-q1`, kind: 'quiz', title: `Quick quiz: ${chapters[0].title}`, questionIds: qs, durationMin: 15, opensAt: t('2026-10-01', '08:00'), closesAt: t('2026-10-31', '23:59'), status: 'open' });
+        out.assessments.push({ ...base, id: `AS-${key}-t1`, kind: 'test', title: `Periodic Test 3: ${name}`, questionIds: [...qs.slice(0, 6), ...shortIds], durationMin: 40, opensAt: t('2026-10-14', '09:00'), status: 'scheduled' });
+        out.examEvents.push({ id: `EX-${key}`, classId: cohort.id, subjectId: sid, title: `Periodic Test 3 · ${name}`, date: t(`2026-10-${String(14 + (hash(name) % 5)).padStart(2, '0')}`, '09:00'), topicIds: topicIds.slice(0, 3) });
+      }
     }
 
-    // Students and one guardian each.
-    for (let n = 1; n <= STUDENTS_PER_CLASS; n++) {
-      studentNo++;
-      const nn = String(n).padStart(2, '0');
-      const name = personName(studentNo);
-      const [first, ...rest] = name.split(' ');
-      const sid = `stu-${spec.id.toLowerCase()}-${nn}`;
-      out.students.push({ id: sid, sisId: `SIS-${spec.grade}${String(studentNo).padStart(3, '0')}`, name, firstName: first, classId: spec.id, yearGroup: spec.grade, initials: initials(name) });
-      out.accounts.push({ loginId: `stu.${spec.key}.${nn}`, kind: 'student', id: sid, label: `${name} · ${classLabel(spec)}`, group: classLabel(spec) });
-      const gname = `${personName(studentNo + 400).split(' ')[0]} ${rest.join(' ')}`;
-      const gid = `g-${spec.id.toLowerCase()}-${nn}`;
-      out.guardians.push({ id: gid, name: gname, firstName: gname.split(' ')[0], email: `${gname.toLowerCase().replace(/\s/g, '.')}.${spec.key}${nn}@family.example`, phone: `+971 50 ${String(1000 + studentNo).padStart(4, '0')} ${String(2000 + n).padStart(4, '0')}` });
-      out.relationships.push({ guardianId: gid, studentId: sid, status: 'verified', relationship: n % 2 ? 'Mother' : 'Father', verifiedAt: t('2026-08-24', '10:02') });
-      out.accounts.push({ loginId: `par.${spec.key}.${nn}`, kind: 'guardian', id: gid, label: `${gname}, parent of ${name} · ${classLabel(spec)}`, group: classLabel(spec) });
-    }
+    const cohortSubjects = cohort.subjects.map((n) => ({
+      name: n,
+      id: out.subjects.find((s) => s.classId === cohort.id && s.name === n)?.id ?? opts.legacy[cohort.id]?.[n]?.subjectId ?? '',
+    }));
+
+    cohort.sections.forEach((sec, si) => {
+      const classId = `${cohort.grade}${sec}`;
+      const tutorId = opts.tutors[classId] ?? subjectTeacher.get(`${cohort.id}|${cohort.subjects[si % cohort.subjects.length]}`)!;
+      const room = `${cohort.grade}${sec}-${100 + cohort.grade * 2 + si}`;
+      out.classes.push({ id: classId, label: sectionLabel(cohort, sec), yearGroup: cohort.grade, tutorId, cohort: cohort.id, section: sec, stream: cohort.stream, room });
+
+      if (classId !== '7A') {
+        for (let day = 1; day <= 5; day++) {
+          WEEK.forEach(([start, end], i) => {
+            const subj = cohortSubjects[(i + day - 1 + si) % cohortSubjects.length];
+            out.periods.push({ id: `P-${classId}-${day}-${i + 1}`, classId, subjectId: subj.id, day, start, end, room });
+          });
+        }
+      }
+
+      const roster: Student[] = opts.existingStudents.filter((s) => s.classId === classId);
+      const target = 22 + (hash(classId) % 4);
+      for (let n = 1; roster.length < target; n++) {
+        const nn = String(n).padStart(2, '0');
+        const female = (n + si) % 2 === 0;
+        const h = hash(`${classId}-${n}`);
+        const pool = female ? FEMALE : MALE;
+        const first = pool[h % pool.length];
+        const last = LAST[(h >> 5) % LAST.length];
+        const name = `${first} ${last}`;
+        const sid = `stu-${classId.toLowerCase()}-${nn}`;
+        const stu: Student = { id: sid, sisId: `SIS-${classId}${nn}`, name, firstName: first, classId, yearGroup: cohort.grade, initials: initials(name), gender: female ? 'F' : 'M' };
+        roster.push(stu);
+        out.students.push(stu);
+        out.accounts.push({ loginId: `stu.${classId.toLowerCase()}.${nn}`, kind: 'student', id: sid, label: `${name} · ${sectionLabel(cohort, sec)}`, group: sectionLabel(cohort, sec) });
+        const gfirst = (female ? MALE : FEMALE)[(h >> 3) % 36];
+        const gname = `${gfirst} ${last}`;
+        const gid = `g-${classId.toLowerCase()}-${nn}`;
+        out.guardians.push({ id: gid, name: gname, firstName: gfirst, email: `${gfirst}.${last}.${classId}${nn}@family.example`.toLowerCase(), phone: `+971 50 ${String(1000 + (h % 9000))} ${String(1000 + ((h >> 7) % 9000))}` });
+        out.relationships.push({ guardianId: gid, studentId: sid, status: 'verified', relationship: isFemale(gfirst) ? 'Mother' : 'Father', verifiedAt: t('2026-08-24', '10:02') });
+        out.accounts.push({ loginId: `par.${classId.toLowerCase()}.${nn}`, kind: 'guardian', id: gid, label: `${gname}, parent of ${name} · ${sectionLabel(cohort, sec)}`, group: sectionLabel(cohort, sec) });
+      }
+
+      roster.forEach((stu, idx) => {
+        const h = hash(stu.id);
+        stu.section = sec;
+        stu.rollNo = idx + 1;
+        stu.gender = stu.gender ?? (isFemale(stu.firstName) ? 'F' : 'M');
+        stu.dob = `${2026 - cohort.grade - 5}-${String(1 + (h % 12)).padStart(2, '0')}-${String(1 + ((h >> 4) % 28)).padStart(2, '0')}`;
+        stu.house = HOUSES[h % HOUSES.length];
+        stu.bloodGroup = BLOOD[(h >> 2) % BLOOD.length];
+        stu.busRoute = ROUTES[(h >> 3) % ROUTES.length];
+
+        if (!opts.hasAttendance.has(stu.id)) {
+          const r = rngFrom(`att-${stu.id}`);
+          const rate = ATTENDANCE_PROFILES[h % ATTENDANCE_PROFILES.length];
+          out.attendanceHistory[stu.id] = days.map((date): AttendanceDay => {
+            let status: Presence = 'present';
+            if (r() > rate) status = r() < 0.35 ? 'excused' : 'absent';
+            else if (r() < 0.04) status = 'late';
+            return { date, status };
+          });
+        }
+
+        const rs = rngFrom(`score-${stu.id}`);
+        const ability = 0.45 + rs() * 0.5;
+        const scores: ScoreEntry[] = [];
+        for (const subj of cohortSubjects) {
+          for (const exam of ['Periodic Test 1', 'Periodic Test 2']) {
+            scores.push({ subjectId: subj.id, exam, marks: Math.max(3, Math.min(20, Math.round((ability + (rs() - 0.5) * 0.2) * 20))), max: 20 });
+          }
+        }
+        out.scorecards[stu.id] = scores;
+
+        if (h % 11 === 0) {
+          behaviourNo++;
+          const merit = h % 22 !== 0;
+          out.behaviourPoints.push({
+            id: `BP-G${behaviourNo}`, studentId: stu.id, kind: merit ? 'merit' : 'demerit',
+            category: merit ? ['Helping others', 'Academic effort', 'Leadership', 'Sports'][h % 4] : ['Late to class', 'Homework not done'][h % 2],
+            points: merit ? 2 : 1, note: merit ? 'Recognised by the class teacher.' : 'Spoken to by the class teacher.', by: tutorId, at: t(days[h % days.length], '10:30'), parentNotified: true,
+          });
+        }
+      });
+    });
+  }
+
+  for (const s of out.staff) {
+    const cohorts = out.teaches[s.id] ?? [];
+    s.classIds = [...new Set([...cohorts, ...cohorts.flatMap(cohortSections)])];
   }
   return out;
 }

@@ -84,6 +84,6 @@ export function canStaffSeeStudent(actor: Actor, studentId: string): boolean {
   const s = d.staff.find((x) => x.id === actor.id);
   const student = d.students.find((x) => x.id === studentId);
   if (!s || !student) return false;
-  if (s.roles.some((r) => ['office', 'attendance', 'pastoral', 'safeguarding', 'leadership', 'it'].includes(r))) return true;
+  if (s.roles.some((r) => ['office', 'attendance', 'pastoral', 'safeguarding', 'leadership', 'it', 'admin'].includes(r))) return true;
   return s.classIds.includes(student.classId);
 }

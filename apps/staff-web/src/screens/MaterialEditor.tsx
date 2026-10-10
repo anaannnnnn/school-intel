@@ -12,6 +12,9 @@ const KIND: Record<MaterialKind, { label: string; icon: LucideIcon }> = {
   video: { label: 'Video', icon: CirclePlay },
   worksheet: { label: 'Worksheet', icon: NotebookPen },
   slides: { label: 'Slides', icon: Presentation },
+  textbook: { label: 'Textbook guide', icon: BookOpenText },
+  revision: { label: 'Revision sheet', icon: NotebookPen },
+  'sample-paper': { label: 'Sample paper', icon: FileText },
 };
 
 type Mat = ReturnType<typeof teach.materialById>;
@@ -198,7 +201,7 @@ function Editor({ actor, m }: { actor: Actor; m?: Mat }) {
               <dt>Subject</dt>
               <dd>{m.subject.name}</dd>
               <dt>Topic</dt>
-              <dd>{m.topic?.name ?? '—'}</dd>
+              <dd>{m.topic?.name ?? 'â€”'}</dd>
               <dt>Kind</dt>
               <dd>{KIND[m.kind].label}</dd>
               <dt>Study time</dt>
@@ -206,7 +209,7 @@ function Editor({ actor, m }: { actor: Actor; m?: Mat }) {
               <dt>Status</dt>
               <dd>{statusChip}</dd>
               <dt>Created by</dt>
-              <dd>{author ?? '—'}{m.aiGenerated ? ' (AI-assisted)' : ''}</dd>
+              <dd>{author ?? 'â€”'}{m.aiGenerated ? ' (AI-assisted)' : ''}</dd>
               <dt>Updated</dt>
               <dd>{formatDateTime(m.updatedAt)}</dd>
             </dl>

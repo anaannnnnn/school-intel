@@ -73,7 +73,7 @@ export function Overview({ actor }: { actor: Actor }) {
     })),
     ...o.cases.map((c) => ({
       record: `${c.id} · ${name(c.studentId).split(' ')[0]}`,
-      group: `Year ${d.students.find((s) => s.id === c.studentId)?.classId}`,
+      group: `Class ${d.students.find((s) => s.id === c.studentId)?.classId}`,
       status: c.status === 'insufficient-data' ? 'Insufficient data' : 'Review due',
       tone: (c.status === 'insufficient-data' ? 'neutral' : 'warning') as Tone,
       next: 'Open case',

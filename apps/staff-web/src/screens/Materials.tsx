@@ -12,6 +12,9 @@ const KIND: Record<MaterialKind, { label: string; icon: LucideIcon }> = {
   video: { label: 'Video', icon: CirclePlay },
   worksheet: { label: 'Worksheet', icon: NotebookPen },
   slides: { label: 'Slides', icon: Presentation },
+  textbook: { label: 'Textbook guide', icon: BookOpen },
+  revision: { label: 'Revision sheet', icon: NotebookPen },
+  'sample-paper': { label: 'Sample paper', icon: FileText },
 };
 
 type Tab = 'all' | 'published' | 'drafts';

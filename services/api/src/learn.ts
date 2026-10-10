@@ -8,6 +8,7 @@ import { AccessDenied, audit, requireFamilyAccess, ValidationError } from './acc
 import * as ai from './ai';
 import { DEMO_DATE } from './constants';
 import type { Db } from './db-types';
+import { inClass } from './cohort';
 import { getDb, mutate, nextId, nowIso } from './store';
 
 /** UAE MoE guidance: no generative AI study tools below Grade 7 (age 13). */
@@ -52,7 +53,7 @@ export function subjectsFor(actor: Actor, studentId: string) {
   const d = getDb();
   const scores = ai.topicScores(d.attempts.filter((a) => a.studentId === studentId && a.status === 'released'), d.questions);
   return d.subjects
-    .filter((s) => s.classId === st.classId)
+    .filter((s) => inClass(s.classId, st.classId))
     .map((s) => {
       const topics = d.topics.filter((t) => t.subjectId === s.id);
       const sc = scores.filter((x) => topics.some((t) => t.id === x.topicId));
@@ -93,7 +94,7 @@ export function material(actor: Actor, studentId: string, id: string) {
   const d = getDb();
   const m = d.materials.find((x) => x.id === id && x.status === 'published');
   const subj = m && d.subjects.find((s) => s.id === m.subjectId);
-  if (!m || !subj || subj.classId !== st.classId) throw new AccessDenied('This material is not shared with your class.');
+  if (!m || !subj || !inClass(subj.classId, st.classId)) throw new AccessDenied('This material is not shared with your class.');
   return { material: m, subject: subj, topic: d.topics.find((t) => t.id === m.topicId), teacher: staffName(d, m.createdBy) };
 }
 
@@ -113,7 +114,7 @@ export function timetableFor(actor: Actor, studentId: string, date = DEMO_DATE) 
   const dow = dayOfWeek(date);
   const now = nowIso().slice(11, 16);
   return d.periods
-    .filter((p) => p.classId === st.classId && p.day === dow)
+    .filter((p) => inClass(p.classId, st.classId) && p.day === dow)
     .sort((a, b) => a.start.localeCompare(b.start))
     .map((p) => {
       const reg = date === DEMO_DATE ? d.lessonRegisters.find((r) => r.periodId === p.id && r.date === date) : undefined;
@@ -134,7 +135,7 @@ export function weekTimetable(actor: Actor, studentId: string) {
   return [1, 2, 3, 4, 5].map((day) => ({
     day,
     periods: d.periods
-      .filter((p) => p.classId === st.classId && p.day === day)
+      .filter((p) => inClass(p.classId, st.classId) && p.day === day)
       .map((p) => ({ ...p, subject: d.subjects.find((s) => s.id === p.subjectId)! })),
   }));
 }
@@ -151,7 +152,7 @@ function hideAnswers(q: Question): Visible {
 export function assessmentsFor(actor: Actor, studentId: string) {
   const st = requireFamilyAccess(actor, studentId);
   const d = getDb();
-  const mine = d.assessments.filter((a) => a.classId === st.classId && a.status !== 'draft' && (a.kind !== 'mock' || a.createdBy === studentId));
+  const mine = d.assessments.filter((a) => inClass(a.classId, st.classId) && a.status !== 'draft' && (a.kind !== 'mock' || a.createdBy === studentId));
   const rows = mine.map((a) => {
     const attempt = d.attempts.filter((x) => x.assessmentId === a.id && x.studentId === studentId).sort((x, y) => y.startedAt.localeCompare(x.startedAt))[0];
     const subject = d.subjects.find((s) => s.id === a.subjectId)!;
@@ -174,7 +175,7 @@ export function activeTest(actor: Actor): Attempt | undefined {
 export function startAttempt(actor: Actor, assessmentId: string): Attempt {
   const st = requireStudentSelf(actor, `Assessment ${assessmentId}`);
   const d = getDb();
-  const a = d.assessments.find((x) => x.id === assessmentId && x.classId === st.classId);
+  const a = d.assessments.find((x) => x.id === assessmentId && inClass(x.classId, st.classId));
   if (!a || (a.kind === 'mock' && a.createdBy !== st.id)) throw new AccessDenied('This assessment is not set for your class.');
   if (a.status !== 'open') throw new ValidationError(a.status === 'scheduled' ? 'This test has not opened yet.' : 'This assessment is closed.');
   const existing = d.attempts.find((x) => x.assessmentId === a.id && x.studentId === st.id);
@@ -286,7 +287,7 @@ export function startTopicPractice(actor: Actor, topicId: string) {
   const st = requireStudentSelf(actor, `Practice ${topicId}`);
   const d = getDb();
   const topic = d.topics.find((t) => t.id === topicId);
-  const subj = topic && d.subjects.find((s) => s.id === topic.subjectId && s.classId === st.classId);
+  const subj = topic && d.subjects.find((s) => s.id === topic.subjectId && inClass(s.classId, st.classId));
   if (!topic || !subj) throw new AccessDenied('This topic is not in your subjects.');
   const qids = ai.buildPaper({ subjectId: subj.id, topicIds: [topicId], count: 5, includeWritten: false }, d.questions.filter((q) => !q.paperId), `${st.id}:${d.attempts.length}`);
   if (!qids.length) throw new ValidationError('No practice questions are ready for this topic yet.');
@@ -297,7 +298,7 @@ export function startPastPaper(actor: Actor, paperId: string) {
   const st = requireStudentSelf(actor, `Past paper ${paperId}`);
   const d = getDb();
   const p = d.pastPapers.find((x) => x.id === paperId);
-  const subj = p && d.subjects.find((s) => s.id === p.subjectId && s.classId === st.classId);
+  const subj = p && d.subjects.find((s) => s.id === p.subjectId && inClass(s.classId, st.classId));
   if (!p || !subj) throw new AccessDenied('This paper is not available for your class.');
   return createPractice(actor, st, { title: p.title, subjectId: p.subjectId, questionIds: p.questionIds, paperId: p.id, durationMin: p.questionIds.length * PAPER_MIN_PER_Q });
 }
@@ -337,7 +338,7 @@ export function pastPapersFor(actor: Actor, studentId: string) {
   const st = requireFamilyAccess(actor, studentId);
   const d = getDb();
   return d.pastPapers
-    .filter((p) => d.subjects.some((s) => s.id === p.subjectId && s.classId === st.classId))
+    .filter((p) => d.subjects.some((s) => s.id === p.subjectId && inClass(s.classId, st.classId)))
     .map((p) => {
       const tries = d.attempts.filter((at) => at.studentId === studentId && at.status === 'released' && d.assessments.find((a) => a.id === at.assessmentId)?.paperId === p.id);
       const best = tries.map(attemptScore).sort((a, b) => b.pct - a.pct)[0];
@@ -352,7 +353,7 @@ export function examPlan(actor: Actor, studentId: string) {
   const st = requireFamilyAccess(actor, studentId);
   const d = getDb();
   const scores = ai.topicScores(d.attempts.filter((a) => a.studentId === studentId && a.status === 'released'), d.questions);
-  const exams = d.examEvents.filter((e) => e.classId === st.classId && e.date.slice(0, 10) >= DEMO_DATE).sort((a, b) => a.date.localeCompare(b.date));
+  const exams = d.examEvents.filter((e) => inClass(e.classId, st.classId) && e.date.slice(0, 10) >= DEMO_DATE).sort((a, b) => a.date.localeCompare(b.date));
   const done = new Set(d.planDone[studentId] ?? []);
   const tasks = ai.studyPlan(exams, scores, d.topics, DEMO_DATE).map((t) => ({ ...t, done: done.has(t.id) }));
   return {
@@ -415,7 +416,7 @@ export function askDoubt(actor: Actor, input: { subjectId: string; question: str
   const q = input.question.trim();
   if (q.length < 8) throw new ValidationError('Tell the helper a little more about what you are stuck on.');
   const d = getDb();
-  const subj = d.subjects.find((s) => s.id === input.subjectId && s.classId === st.classId);
+  const subj = d.subjects.find((s) => s.id === input.subjectId && inClass(s.classId, st.classId));
   if (!subj) throw new ValidationError('Choose one of your subjects.');
   const help = ai.helpWithDoubt(q, d.materials, d.topics, subj.id);
   return mutate((db) => {
@@ -484,7 +485,7 @@ export function writtenTasksFor(actor: Actor, studentId: string) {
   const st = requireFamilyAccess(actor, studentId);
   const d = getDb();
   return d.writtenTasks
-    .filter((w) => w.classId === st.classId)
+    .filter((w) => inClass(w.classId, st.classId))
     .map((w) => ({ ...w, subject: d.subjects.find((s) => s.id === w.subjectId)!, submission: d.writtenSubmissions.find((s) => s.taskId === w.id && s.studentId === studentId) }));
 }
 
@@ -508,7 +509,7 @@ export function writtenTask(actor: Actor, studentId: string, id: string) {
 /** Formative check before submitting. Nothing is stored and no marks are shown. */
 export function checkDraft(actor: Actor, taskId: string, text: string) {
   const st = requireStudentSelf(actor, `Written task ${taskId}`);
-  const w = getDb().writtenTasks.find((x) => x.id === taskId && x.classId === st.classId);
+  const w = getDb().writtenTasks.find((x) => x.id === taskId && inClass(x.classId, st.classId));
   if (!w) throw new AccessDenied('This task is not set for your class.');
   if (st.yearGroup < MIN_AI_YEAR) throw new ValidationError('AI feedback is available from Year 7.');
   const r = ai.suggestRubricMarks(text, w.rubric, w.minWords);
@@ -522,7 +523,7 @@ export function checkDraft(actor: Actor, taskId: string, text: string) {
 export function submitWritten(actor: Actor, taskId: string, text: string) {
   const st = requireStudentSelf(actor, `Written task ${taskId}`);
   const d = getDb();
-  const w = d.writtenTasks.find((x) => x.id === taskId && x.classId === st.classId);
+  const w = d.writtenTasks.find((x) => x.id === taskId && inClass(x.classId, st.classId));
   if (!w) throw new AccessDenied('This task is not set for your class.');
   if (d.writtenSubmissions.some((s) => s.taskId === taskId && s.studentId === st.id)) throw new ValidationError('You have already submitted this task.');
   const words = ai.wordCount(text);
@@ -554,7 +555,7 @@ export function gradesFor(actor: Actor, studentId: string) {
   const st = requireFamilyAccess(actor, studentId);
   const d = getDb();
   return d.subjects
-    .filter((s) => s.classId === st.classId)
+    .filter((s) => inClass(s.classId, st.classId))
     .map((s) => {
       const results = d.attempts
         .filter((at) => at.studentId === studentId && at.status === 'released')

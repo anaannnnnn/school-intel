@@ -7,6 +7,8 @@ import type {
   Attempt,
   AttendanceDay,
   BehaviourPoint,
+  ChatMessage,
+  ScoreEntry,
   Doubt,
   ExamEvent,
   LessonRegister,
@@ -91,6 +93,11 @@ export interface Db {
   behaviourPoints: BehaviourPoint[];
   /** Completed study-plan task IDs per student. */
   planDone: Record<string, string[]>;
+  /** Report-card scores per student. */
+  scorecards: Record<string, ScoreEntry[]>;
+  chat: ChatMessage[];
+  /** Last-read time per `kind:id` per room. */
+  chatRead: Record<string, Record<string, string>>;
   counters: Record<string, number>;
   demo: { lmsOutage: boolean; staleBus: boolean; failPrimaryDelivery: boolean };
 }

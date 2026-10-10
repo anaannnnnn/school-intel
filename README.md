@@ -57,26 +57,29 @@ Edit the seed in `services/api/src` and run `npm run db:build`; a test fails if 
 
 Because the database file is served to the browser, **anyone who can open the site can download it**. Passcodes are hashed, but a copy can be attacked offline, so this setup is for sample data and pilots only. Moving to real records needs a server-side API, a database, proper authentication and backups.
 
-Sample logins to try:
+Sample logins to try (initial passcode `Horizon-2026`):
 
 | Role | Login ID | Try |
 | --- | --- | --- |
-| Student | `stu.sara` | Year 7A: the open quizzes, the timed science test, a past paper, the study helper and the written task |
-| Student | `stu.cbse9.01` | Class 9 CBSE: the real Class 9 subjects and chapters |
-| Parent | `par.fatima` | Children Sara (7A) and Adam (4B) |
-| Teacher | `tch.nadia` | Maths teacher and Year 7 tutor: registers, question bank, quizzes, gradebook, merits |
-| Teacher | `tch.priya` | Science: confirm AI-suggested marks for today's test, then release results |
-| Teacher | `tch.james` | English: marking queue for three persuasive paragraphs |
-| Staff | `staff.aisha` | Pastoral lead and safeguarding lead: support case SC-1042, restricted concern SG-026 |
-| Staff | `staff.layla` | Office and attendance: family requests, absence explanations |
-| Staff | `staff.karim` | School IT: connector health, mapping exceptions, failure simulation |
-| Staff | `staff.samira` | Principal: aggregate measures and the audit log |
+| Student | `stu.9a.01` | Class 9A: CBSE textbooks, notes, worksheets, revision, sample papers, quizzes, attendance, results |
+| Parent | `par.9a.01` | The parent of `stu.9a.01`: progress, attendance, and chat with the child's teachers |
+| Teacher | `tch.mathematics.g9` | Class 9 Mathematics across sections A to E: registers, materials, bulk messages to a class |
+| Teacher | `tch.physics.g11science` | Class 11 Science Physics |
+| Admin | `adm.rajesh`, `adm.deepa` | Administration console: enrolment, staff, sections, accounts (CSV export), chat and audit activity |
+| Legacy | `stu.sara`, `par.fatima`, `tch.nadia`, `staff.samira` | The original Class 7A scenario |
 
-Each role only sees the areas and records it is authorised for. Visiting a restricted area shows the "This record is restricted" state and is recorded in the audit log. "Reload school data" in either workspace discards changes saved in the browser.
+Logins follow patterns: students `stu.<section>.<nn>`, parents `par.<section>.<nn>`, teachers `tch.<subject>.g<grade>[stream]`.
 
-### Grades 9 to 13: real syllabus data
+### CBSE-only school
 
-Besides the Year 7A scenario, the school has classes for CBSE (Class 9-12), ICSE (9-10), ISC (11-12), Cambridge IGCSE and O Level (Year 10-11) and AS and A Level (Year 12-13). Subjects, chapters and topics are the published syllabus titles; the students, parents and teachers are invented. See [docs/curriculum-data.md](docs/curriculum-data.md) for sources, licences and gaps.
+The school runs the CBSE curriculum for Classes 1 to 12: 57 sections (A to D for Classes 1-5, A to E for 6-10, A to F for 11-12 split into Science, Commerce and Humanities), 1,300+ students (20+ per section) and 4,600+ study resources: textbooks, notes, worksheets, revision sheets, sample papers, plus 1,500+ quiz questions. Each student has attendance history, scorecards and merit points. Chapter titles follow the NCERT syllabus; the study content is original scaffolding written for this app, not copied textbook text. Verify chapter lists against ncert.nic.in before real use. See [docs/curriculum-data.md](docs/curriculum-data.md).
+
+### Chat, assistant and admin
+
+- **Chat rooms**: teachers, students and parents of a section share a class room and can send direct messages. People can only message those connected to them through a section (a parent reaches their child's teachers; a teacher reaches the students and parents of sections they teach). Teachers can bulk-message a whole section (students, parents or both). Denied attempts are audited.
+- **Horizon Assistant**: a floating assistant for every role. It is rules-based and offline, grounded in the signed-in person's own records (attendance, timetable, exams, scores, homework, study material search). It is not a large language model.
+- **Admin console**: sign in as `adm.rajesh` via "Teacher or staff". Admins get school-wide stats, student, teacher and class lists, account lookup and CSV export, and chat and audit activity. Passcode hashes are never shown.
+- **Themes**: three in Settings for each app (family: Horizon, Lavender, Night; staff: Horizon, Ledger, Night).
 
 ## Product and design
 

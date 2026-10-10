@@ -1,8 +1,9 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
-import { Bell, ChartNoAxesColumn, ChevronLeft, House, Inbox, LayoutGrid, Library, MessageCircleQuestion, MessageSquareText, PenLine, UserRound, type LucideIcon } from 'lucide-react';
+import { Bell, ChartNoAxesColumn, ChevronLeft, House, Inbox, LayoutGrid, Library, MessageCircleQuestion, MessageSquareText, MessagesSquare, PenLine, UserRound, type LucideIcon } from 'lucide-react';
 import { Avatar, cx, useGlider, useMotion, useRouteDirection } from '@school-intel/ui';
-import { className, family, useDb } from '@school-intel/api';
+import { chat, className, family, useDb } from '@school-intel/api';
+import { AssistantWidget } from '../../shared/AssistantWidget';
 import { useFamily } from './family-context';
 import { greeting } from './screens/ParentToday';
 
@@ -26,6 +27,7 @@ export function Shell() {
   const { actor, isParent, name, firstName } = useFamily();
   useDb();
   const unread = family.notificationsFor(actor).filter((n) => !n.read).length;
+  const chatUnread = chat.unreadTotal(actor);
   const { pathname } = useLocation();
   const tabs = isParent ? PARENT_TABS : STUDENT_TABS;
   // Full-screen flows (test player) hide the tab bar so students are not pulled away mid-test.
@@ -51,6 +53,10 @@ export function Shell() {
             <strong>{firstName}</strong>
           </span>
         </Link>
+        <Link to="/chat" className="icon-btn" aria-label={`Messages${chatUnread ? `, ${chatUnread} unread` : ''}`}>
+          <MessagesSquare size={20} aria-hidden />
+          {chatUnread > 0 && <span className="badge-dot" aria-hidden />}
+        </Link>
         <Link to="/notifications" className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}>
           <Bell size={20} aria-hidden />
           {unread > 0 && <span className="badge-dot" aria-hidden />}
@@ -70,6 +76,7 @@ export function Shell() {
           </NavLink>
         ))}
       </nav>
+      {!focus && <AssistantWidget actor={actor} materialHref={(id) => `#/material/${id}`} />}
     </div>
   );
 }

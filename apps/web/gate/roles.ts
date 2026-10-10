@@ -22,7 +22,7 @@ export const ROLES: RoleInfo[] = [
     promise: 'Pick up right where you left off.',
     points: ['Today’s lessons and what is due', 'Notes, revision cards and past papers', 'Quizzes and timed tests with instant feedback'],
     surface: 'family',
-    idHint: 'For example stu.sara or stu.cbse9.01',
+    idHint: 'For example stu.9a.01 or stu.sara',
   },
   {
     id: 'parent',
@@ -31,16 +31,16 @@ export const ROLES: RoleInfo[] = [
     promise: 'Stay close to your child’s school day.',
     points: ['Attendance, grades and merits at a glance', 'Requests, permissions and confidential help', 'Calm updates, no noise'],
     surface: 'family',
-    idHint: 'For example par.fatima or par.cbse9.01',
+    idHint: 'For example par.9a.01 or par.fatima',
   },
   {
     id: 'teacher',
     title: 'Teacher or staff',
-    blurb: 'Registers, materials, marking and student support, in one workspace.',
+    blurb: 'Registers, materials, marking, class chat and school administration, in one workspace.',
     promise: 'Your classes, marking and records, ready.',
     points: ['Lessons and registers with family alerts', 'AI suggests marks, you confirm every one', 'Role-based access with a full audit log'],
     surface: 'staff',
-    idHint: 'For example tch.nadia or tch.cbse.physics.upper',
+    idHint: 'Teachers: tch.mathematics.g9. Admins: adm.rajesh',
   },
 ];
 

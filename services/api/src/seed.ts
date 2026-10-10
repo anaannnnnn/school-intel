@@ -25,7 +25,6 @@ import type {
   QuarantinedRow,
   Register,
   ReportDraft,
-  SchoolClass,
   StaffMember,
   Student,
   SupportCase,
@@ -33,7 +32,7 @@ import type {
 import * as L from './seed-learning';
 import { DEMO_DATE, SCHOOL } from './constants';
 import type { Db } from './db-types';
-import { createCurriculumSeed } from './seed-curriculum';
+import { cohortSections, createCurriculumSeed } from './seed-curriculum';
 import { markObjective, suggestRubricMarks } from './ai';
 
 export { SCHOOL, DEMO_DATE };
@@ -63,14 +62,13 @@ const student = (id: string, name: string, classId: string, sisId: string): Stud
 function baseAccounts(staff: StaffMember[], students: Student[], guardians: Guardian[]): Account[] {
   const first = (n: string) => n.split(' ')[0].toLowerCase();
   return [
-    ...staff.map((s): Account => ({ loginId: `${s.roles.includes('teacher') ? 'tch' : 'staff'}.${first(s.name)}`, kind: 'staff', id: s.id, label: `${s.name} · ${s.title}`, group: 'Year 7 and school staff' })),
-    ...students.map((s): Account => ({ loginId: `stu.${first(s.name)}`, kind: 'student', id: s.id, label: `${s.name} · Year ${s.classId}`, group: `Year ${s.yearGroup} · ${s.classId}` })),
+    ...staff.map((s): Account => ({ loginId: `${s.roles.includes('admin') ? 'adm' : s.roles.includes('teacher') ? 'tch' : 'staff'}.${first(s.name)}`, kind: 'staff', id: s.id, label: `${s.name} · ${s.title}`, group: 'Year 7 and school staff' })),
+    ...students.map((s): Account => ({ loginId: `stu.${first(s.name)}`, kind: 'student', id: s.id, label: `${s.name} · Class ${s.classId}`, group: `Class ${s.yearGroup} · ${s.classId}` })),
     ...guardians.map((g): Account => ({ loginId: `par.${first(g.name)}`, kind: 'guardian', id: g.id, label: `${g.name} · Parent`, group: 'Year 7 and school parents' })),
   ];
 }
 
 export function createSeedWithAccounts(): { doc: Db; accounts: Account[] } {
-  const cur = createCurriculumSeed();
   const staff: StaffMember[] = [
     { id: 'st-nadia', name: 'Nadia Farooq', title: 'Mathematics teacher · Year 7 tutor', initials: 'NF', roles: ['teacher'], classIds: ['7A'], email: 'nadia.farooq@horizon.example' },
     { id: 'st-aisha', name: 'Aisha Rahman', title: 'Head of pastoral care · Designated safeguarding lead', initials: 'AR', roles: ['pastoral', 'safeguarding'], classIds: [], email: 'aisha.rahman@horizon.example' },
@@ -110,12 +108,6 @@ export function createSeedWithAccounts(): { doc: Db; accounts: Account[] } {
     { guardianId: 'g-ali', studentId: 'stu-yusuf', status: 'verified', relationship: 'Mother', verifiedAt: t('2026-08-27', '09:31') },
   ];
 
-  const classes: SchoolClass[] = [
-    { id: '7A', label: 'Year 7A', yearGroup: 7, tutorId: 'st-nadia' },
-    { id: '4B', label: 'Year 4B', yearGroup: 4, tutorId: 'st-layla' },
-    { id: '8B', label: 'Year 8B', yearGroup: 8, tutorId: 'st-daniel' },
-    { id: '9C', label: 'Year 9C', yearGroup: 9, tutorId: 'st-daniel' },
-  ];
 
   const feed: FeedItem[] = [
     { id: 'f-1', studentId: 'stu-sara', kind: 'attendance', title: 'Present', detail: 'Register confirmed 08:15', status: 'confirmed', source: src('SIS', 'REG-7A-0610-P1', today('08:15')) },
@@ -388,7 +380,30 @@ export function createSeedWithAccounts(): { doc: Db; accounts: Account[] } {
     { id: 'A-1005', at: today('09:20'), actor: 'Aisha Rahman', action: 'Acknowledged support case', target: 'SC-1042', outcome: 'allowed' },
   ];
 
+  staff.push(
+    { id: 'st-admin', name: 'Rajesh Malhotra', title: 'School administrator', initials: 'RM', roles: ['admin'], classIds: [], email: 'rajesh.malhotra@horizon.example' },
+    { id: 'st-admin2', name: 'Deepa Nair', title: 'Admissions and records administrator', initials: 'DN', roles: ['admin'], classIds: [], email: 'deepa.nair@horizon.example' },
+  );
   staff.push(...L.extraStaff);
+
+  // The original Year 7A subjects now belong to the whole Class 7 cohort (7A to 7E).
+  const legacySubjects = L.subjects.map((x) => ({ ...x, classId: 'G7' }));
+  const legacyBy = (name: string) => {
+    const sub = legacySubjects.find((x) => x.name === name)!;
+    return { subjectId: sub.id, teacherId: sub.teacherId, topicCount: L.topics.filter((x) => x.subjectId === sub.id).length };
+  };
+  const attendance = L.seededAttendanceHistory();
+  const cur = createCurriculumSeed({
+    existingStudents: students,
+    legacy: { G7: { Mathematics: legacyBy('Mathematics'), Science: legacyBy('Science'), English: legacyBy('English') } },
+    tutors: { '7A': 'st-nadia', '4B': 'st-layla', '8B': 'st-daniel', '9C': 'st-daniel' },
+    hasAttendance: new Set(Object.keys(attendance)),
+  });
+  for (const member of staff) {
+    const cohorts = cur.teaches[member.id];
+    for (const cls of cur.classes) if (cls.tutorId === member.id && !member.classIds.includes(cls.id)) member.classIds.push(cls.id);
+    if (cohorts) member.classIds = [...new Set([...member.classIds, ...cohorts, ...cohorts.flatMap(cohortSections)])];
+  }
 
   const writtenSubmissions: WrittenSubmission[] = L.seededWritten.map((w) => {
     const task = L.writtenTasks.find((x) => x.id === w.taskId)!;
@@ -422,7 +437,7 @@ export function createSeedWithAccounts(): { doc: Db; accounts: Account[] } {
 
   const doc: Db = {
     version: 6,
-    staff: [...staff, ...cur.staff], students: [...students, ...cur.students], guardians: [...guardians, ...cur.guardians], relationships: [...relationships, ...cur.relationships], classes: [...classes, ...cur.classes], feed, drafts, cases, requests, circulars, assignments,
+    staff: [...staff, ...cur.staff], students: [...students, ...cur.students], guardians: [...guardians, ...cur.guardians], relationships: [...relationships, ...cur.relationships], classes: cur.classes, feed, drafts, cases, requests, circulars, assignments,
     submissions: [], passports, concerns, registers, explanations, incidents, homework, activities, routes,
     connectors, quarantine, notifications, audit,
     preferences: {
@@ -431,22 +446,25 @@ export function createSeedWithAccounts(): { doc: Db; accounts: Account[] } {
     consents: {
       'TRIP-7-MUSEUM:stu-sara': { key: 'TRIP-7-MUSEUM', studentId: 'stu-sara', label: 'Museum visit · 15 Oct', given: false },
     },
-    subjects: [...L.subjects, ...cur.subjects],
+    subjects: [...legacySubjects, ...cur.subjects],
     topics: [...L.topics, ...cur.topics],
     materials: [...L.materials, ...cur.materials],
-    questions: L.questions,
-    pastPapers: L.pastPapers,
-    assessments: L.assessments,
+    questions: [...L.questions, ...cur.questions],
+    pastPapers: [...L.pastPapers, ...cur.pastPapers],
+    assessments: [...L.assessments, ...cur.assessments],
     attempts: [...L.seededAttempts(), ...testAttempts],
     writtenTasks: L.writtenTasks,
     writtenSubmissions,
     doubts: L.doubts,
-    examEvents: L.examEvents,
+    examEvents: [...L.examEvents, ...cur.examEvents],
     periods: [...L.periods, ...cur.periods],
     lessonRegisters: L.seededRegisters(),
-    attendanceHistory: L.seededAttendanceHistory(),
-    behaviourPoints: L.behaviourPoints,
+    attendanceHistory: { ...attendance, ...cur.attendanceHistory },
+    behaviourPoints: [...L.behaviourPoints, ...cur.behaviourPoints],
     planDone: { 'stu-sara': [] },
+    scorecards: cur.scorecards,
+    chat: [],
+    chatRead: {},
     counters: { REQ: 83, SG: 26, SUB: 720, BI: 212, A: 1005, N: 5, SC: 1044, AE: 311, HW: 11, MAT: 105, Q: 402, AS: 1, AT: 100, WS: 3, DB: 203, BP: 8 },
     demo: { lmsOutage: false, staleBus: false, failPrimaryDelivery: false },
   };
