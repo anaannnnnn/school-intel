@@ -10,7 +10,7 @@ One web app for a school. The start page asks whether you are a **student, paren
 - **Staff workspace** (`apps/staff-web`): teachers, pastoral and safeguarding staff, the school office, IT and leadership. Also phone-first: a bottom bar for the four areas you use most, and a sheet for the rest.
 - **Start page and sign-in** (`apps/web`): role choice, login, and loading the right workspace.
 
-The data comes from a SQLite file, [`apps/public/data/school.db`](apps/public/data/school.db), which is read in the browser when the app starts (sql.js). Nothing needs to run on the server: any host that can serve static files works. Changes people make (marks, registers, requests) are saved in that browser until a backend is added. A new release of `school.db` replaces them.
+The data comes from a SQLite file, [`apps/public/data/school.db`](apps/public/data/school.db), which is read in the browser when the app starts (sql.js). Nothing needs to run on the server: any host that can serve static files works. Changes people make (marks, registers, requests) are saved in that browser until a backend is added. The data will be converted to a database structure to store it on the server. A new release of `school.db` replaces them.
 
 `services/api` enforces the PRD's permission rules and workflow states, and writes an audit log. It is **not** a production backend: there are no SIS/LMS connectors, no real AI provider and no server-side authentication.
 
